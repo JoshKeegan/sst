@@ -91,18 +91,23 @@ var Handler = class MoveHandler {
     }
 
     _draw(grabOp, window) {
-        const monitorId = global.display.get_current_monitor();
+        const monitorIdx = global.display.get_current_monitor();
         const wRect = window.get_frame_rect();
-		const workArea = window.get_work_area_for_monitor(monitorId);
+
+        // monitor work area:
+        //  - width & height account for taskbar etc...
+        //  - x & y are the top left position within the overall rendered space
+		const monitorArea = window.get_work_area_for_monitor(monitorIdx);
+        log("work area w: " + monitorArea.width + " h: " + monitorArea.height);
 
         const tRect = new Meta.Rectangle({
-            x: 0,
-            y: 0,
-            width: 1280,
-            height: 720,
+            x: monitorArea.x,
+            y: monitorArea.y,
+            width: monitorArea.width / 4,
+            height: monitorArea.height / 2,
         });
 
-        this._tilePreview.open(window, tRect, monitorId);
+        this._tilePreview.open(window, tRect, monitorIdx);
     }
 
     _undraw() {
