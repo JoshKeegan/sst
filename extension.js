@@ -2,37 +2,8 @@
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
+const TilingZones = Me.imports.tilingZones;
 const MoveHandler = Me.imports.moveHandler;
-
-// TODO: load settings from config
-var settings = {
-    zones: [
-        {
-            x: 0,
-            y: 0,
-            width: 1280,
-            height: 720,
-        },
-        {
-            x: 0,
-            y: 720,
-            width: 1280,
-            height: 720,
-        },
-        {
-            x: 1280,
-            y: 0,
-            width: 2560,
-            height: 1440,
-        },
-        {
-            x: 3840,
-            y: 0,
-            width: 2560,
-            height: 1440,
-        },
-    ]
-};
     
 function enable() {
     log("enable sst");
@@ -43,6 +14,7 @@ function enable() {
     this.gnome_shell_settings = ExtensionUtils.getSettings("org.gnome.shell.overrides");
     this.gnome_shell_settings.set_boolean("edge-tiling", false);
 
+    this.tilingZones = new TilingZones.Zones();
     this.windowMoveHandler = new MoveHandler.Handler();
 }
 
@@ -51,6 +23,8 @@ function disable() {
 
     this.windowMoveHandler.destroy();
     this.windowMoveHandler = null;
+    this.tilingZones.destroy();
+    this.tilingZones = null;
 
     // re-enable native tiling
     this.gnome_mutter_settings.reset("edge-tiling");

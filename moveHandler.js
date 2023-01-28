@@ -10,7 +10,6 @@ const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 var Handler = class MoveHandler {
 	constructor() {
-        log('sst: Move handler');
         const isMoving = grabOp => [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
 
 		this._displaySignals = [];
@@ -92,21 +91,13 @@ var Handler = class MoveHandler {
 
     _draw(grabOp, window) {
         const monitorIdx = global.display.get_current_monitor();
-        const wRect = window.get_frame_rect();
 
-        // monitor work area:
-        //  - width & height account for taskbar etc...
-        //  - x & y are the top left position within the overall rendered space
-		const monitorArea = window.get_work_area_for_monitor(monitorIdx);
-        log("work area w: " + monitorArea.width + " h: " + monitorArea.height);
+        const zones = MainExtension.tilingZones.getZones(monitorIdx);
+        // TODO: Would be nice to display all possible zones (perhaps even on all monitors)
+        //  separate to the tile preview
 
-        const tRect = new Meta.Rectangle({
-            x: monitorArea.x,
-            y: monitorArea.y,
-            width: monitorArea.width / 4,
-            height: monitorArea.height / 2,
-        });
-
+        // TODO: Select the zone that the cursor intersects
+        const tRect = zones[0];
         this._tilePreview.open(window, tRect, monitorIdx);
     }
 
