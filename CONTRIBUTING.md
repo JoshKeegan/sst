@@ -11,3 +11,6 @@ gnome-extensions disable sst@joshkeegan.co.uk
 ```
 
 `Alt+F2 > r` after each change (enable/disable will not pick up code changes).
+
+## API
+Gnome extensions are built on top of the gnome-shell JS code. Docs don't seem to exist, but you can read [the source code](https://gitlab.gnome.org/GNOME/gnome-shell/).
