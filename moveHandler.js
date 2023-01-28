@@ -32,7 +32,6 @@ var Handler = class MoveHandler {
 		this._tilePreview = new windowManager.TilePreview();
 		this._tilePreview.open = GNOME_VERSION < 3.36 ? this._tilePreview.show : this._tilePreview.open;
 		this._tilePreview.close = GNOME_VERSION < 3.36 ? this._tilePreview.hide : this._tilePreview.close;
-		this._tilePreview.needsUpdate = rect => !this._tilePreview._rect || !rect.equal(this._tilePreview._rect);
 		// don't use rounded corners since it's not worth it
 		(GNOME_VERSION < 3.36 ? this._tilePreview.actor : this._tilePreview).style_class = "tile-preview";
 		this._tilePreview._updateStyle = () => {};
@@ -97,11 +96,29 @@ var Handler = class MoveHandler {
         //  separate to the tile preview
 
         // TODO: Select the zone that the cursor intersects
-        const tRect = zones[0];
-        this._tilePreview.open(window, tRect, monitorIdx);
+        const pointer = global.get_pointer();
+        log('sst: ptr x: ' + pointer[0] + ' y: ' + pointer[1]);
+
+        const tRect = this._selectZone(zones, pointer[0], pointer[1]);
+
+        // If we already have another tile selected (window is being dragged), we have to close the existing one before
+        //  opening a new preview
+        if (tRect != this._tileRect) {
+            this._tilePreview.close();
+            this._tilePreview.open(window, tRect, monitorIdx);
+            this._tileRect = tRect;
+        }
     }
 
     _undraw() {
         this._tilePreview.close();
+    }
+
+    _selectZone(zones, xPtr, yPtr) {
+        return zones.find(zone => 
+            zone.x <= xPtr && 
+            zone.x + zone.width > xPtr &&
+            zone.y <= yPtr &&
+            zone.y + zone.height > yPtr);
     }
 }
