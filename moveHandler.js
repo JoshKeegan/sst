@@ -30,11 +30,6 @@ var Handler = class MoveHandler {
 		this._lastActive = false;
 
 		this._tilePreview = new windowManager.TilePreview();
-		this._tilePreview.open = GNOME_VERSION < 3.36 ? this._tilePreview.show : this._tilePreview.open;
-		this._tilePreview.close = GNOME_VERSION < 3.36 ? this._tilePreview.hide : this._tilePreview.close;
-		// don't use rounded corners since it's not worth it
-		(GNOME_VERSION < 3.36 ? this._tilePreview.actor : this._tilePreview).style_class = "tile-preview";
-		this._tilePreview._updateStyle = () => {};
 
 		// metaRect, which the grabbed window will tile to
 		this._tileRect = null;
