@@ -9,3 +9,5 @@ To enable/disable the extension, run:
 gnome-extensions enable sst@joshkeegan.co.uk
 gnome-extensions disable sst@joshkeegan.co.uk
 ```
+
+`Alt+F2 > r` after each change (enable/disable will not pick up code changes).
