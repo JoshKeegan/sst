@@ -5,12 +5,15 @@ class Extension {
     }
 
     enable() {
+        log("enable sst");
     }
 
     disable() {
+        log("disable sst");
     }
 }
 
 function init() {
+    log("Init sst");
     return new Extension();
 }
