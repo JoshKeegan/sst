@@ -96,17 +96,24 @@ var Handler = class MoveHandler {
 
         const tRect = this._selectZone(zones, pointer[0], pointer[1]);
 
-        // If we already have another tile selected (window is being dragged), we have to close the existing one before
-        //  opening a new preview
         if (tRect != this._tileRect) {
-            this._tilePreview.close();
-            this._tilePreview.open(window, tRect, monitorIdx);
+            // If we already have another tile selected (window is being dragged), we have to close the existing one before
+            //  opening a new preview. Also delay showing the next preview, if we reuse the tile preview whilst the last one is 
+            //  still animating away then it won't be shown.
+            if (this._tileRect !== null) {
+                this._tilePreview.close();
+                GLib.timeout_add(GLib.PRIORITY_HIGH, 250, () => this._tilePreview.open(window, tRect, monitorIdx));
+            }
+            else {
+                this._tilePreview.open(window, tRect, monitorIdx);
+            }
             this._tileRect = tRect;
         }
     }
 
     _undraw() {
         this._tilePreview.close();
+        this._tileRect = null;
     }
 
     _selectZone(zones, xPtr, yPtr) {
