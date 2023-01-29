@@ -2,7 +2,9 @@
 
 Checkout the repo to `~/.local/share/gnome-shell/extensions` so that code changes are reflected locally without an installation step.
 
-Follow [official docs](https://gjs.guide/extensions/development/creating.html#enabling-the-extension) to access the gnome-shell logs.
+To access gnome-shell logs (where any `log` calls in the extension will be logged to):
+ - For X11 run: `journalctl -f -o cat /usr/bin/gnome-shell`
+ - For Wayland run: `dbus-run-session -- gnome-shell --nested --wayland`
 
 To enable/disable the extension, run:
 ```bash
@@ -10,7 +12,14 @@ gnome-extensions enable sst@joshkeegan.co.uk
 gnome-extensions disable sst@joshkeegan.co.uk
 ```
 
-`Alt+F2 > r` after each change (enable/disable will not pick up code changes).
+`Alt+F2 > r` after each change to restart gnome shell (enable/disable will not pick up code changes).
+
+Normal dev workflow will be:
+ - Start logs monitor
+ - Make code change
+ - Disable extension
+ - Restart gnome shell
+ - Enable extension
 
 ## API
 Gnome extensions are built on top of the gnome-shell JS code. Docs don't seem to exist, but you can read source code:
