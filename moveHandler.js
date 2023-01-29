@@ -6,7 +6,10 @@ const {Clutter, GLib, Meta} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
+const Tile = Me.imports.tile.Tile;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
+
+const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
 
 var Handler = class MoveHandler {
     constructor() {
@@ -65,10 +68,7 @@ var Handler = class MoveHandler {
     }
 
     _onMoving(grabOp, window) {
-        log("sst: on moving");
-
         let active = this._isMouseSnapKeyPressed();
-        log("sst: mouse snap key pressed " + active);
 
         if (active) {
             this._draw(grabOp, window);
@@ -97,7 +97,7 @@ var Handler = class MoveHandler {
         const pointer = global.get_pointer();
         const tRect = this._selectTileArea(tiles, pointer[0], pointer[1]);
 
-        if (tRect != this._tileRect) {
+        if (!tRect || !this._tileRect || !tRect.equal(this._tileRect)) {
             // If we already have another tile selected (window is being dragged), we have to close the existing one before
             //  opening a new preview. Also delay showing the next preview, if we reuse the tile preview whilst the last one is 
             //  still animating away then it won't be shown.
@@ -118,11 +118,48 @@ var Handler = class MoveHandler {
     }
 
     _selectTileArea(tiles, xPtr, yPtr) {
-        return tiles.find(zone => 
-            zone.x <= xPtr && 
-            zone.x + zone.width > xPtr &&
-            zone.y <= yPtr &&
-            zone.y + zone.height > yPtr);
+        const tile = tiles.find(t => 
+            t.x <= xPtr && 
+            t.x + t.width > xPtr &&
+            t.y <= yPtr &&
+            t.y + t.height > yPtr);
+        
+        // Combined tiling feature: if close to an edge of the tile, the target area 
+        //  can be combined with the adjacent tile, if both tiles are on the same monitor.
+        // Note that there's no check for tiles to be actually adjacent, the closest tile
+        //  is used to allow for small gaps to be left between tiles if someone wanted to 
+        //  leave borders.
+        let combinedTile = tile;
+
+        // Left
+        if (tile.relationships.left !== null && 
+            tile.relationships.left.monitorIdx === tile.monitorIdx &&
+            xPtr < tile.x + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            combinedTile = Tile.combine(combinedTile, tile.relationships.left);
+        }
+
+        // Right
+        if (tile.relationships.right !== null && 
+            tile.relationships.right.monitorIdx === tile.monitorIdx &&
+            xPtr > tile.x + tile.width - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            combinedTile = Tile.combine(combinedTile, tile.relationships.right);
+        }
+
+        // Up
+        if (tile.relationships.up !== null &&
+            tile.relationships.up.monitorIdx === tile.monitorIdx && 
+            yPtr < tile.y + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            combinedTile = Tile.combine(combinedTile, tile.relationships.up);
+        }
+
+        // Down
+        if (tile.relationships.down !== null && 
+            tile.relationships.down.monitorIdx === tile.monitorIdx && 
+            yPtr > tile.y + tile.height - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+                combinedTile = Tile.combine(combinedTile, tile.relationships.down);
+        }
+
+        return combinedTile;
     }
 
     _moveWindow(window, rect) {

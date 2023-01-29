@@ -4,6 +4,11 @@ const {Meta} = imports.gi;
 const {layout} = imports.ui;
 const Main = imports.ui.main;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
+const Tile = Me.imports.tile.Tile;
+
 var Tiles = class Tiles {
     constructor() {
         this._layoutSignalId = Main.layoutManager.connect('monitors-changed', this._refreshTiles.bind(this));
@@ -11,7 +16,7 @@ var Tiles = class Tiles {
     }
 
     getTiles(monitorIdx) {
-        return this._tiles[monitorIdx];
+        return this._tilesByMonitor[monitorIdx];
     }
 
     destroy() {
@@ -25,25 +30,28 @@ var Tiles = class Tiles {
         //  gnome-shell makes the same assumption internally so seems safe enough for now...
         let ws = global.workspace_manager.get_workspace_by_index(0);
 
-        this._tiles = new Array(Main.layoutManager.monitors.length);        
+        this._tilesByMonitor = new Array(Main.layoutManager.monitors.length);        
         for (let i = 0; i < Main.layoutManager.monitors.length; i++) {
             const monitorWorkArea = ws.get_work_area_for_monitor(i);
             log("work area monitor idx: " + i + " w: " + monitorWorkArea.width + " h: " + monitorWorkArea.height);
 
             // monitor idx => { x, y, width, height }
-            this._tiles[i] = this._calculateTileAreas(monitorWorkArea);
+            this._tilesByMonitor[i] = this._calculateTileAreas(i, monitorWorkArea);
         }
+
+        // Combine individual arrays of tiles per monitor into a global array of all tiles
+        this._allTiles = [];
+        this._tilesByMonitor.forEach(tiles => this._allTiles = this._allTiles.concat(tiles));
+        TileRelationshipCalculator.addRelationships(this._allTiles);
     }
 
-    _calculateTileAreas(monitorWorkArea) {
-        const relTileAreas = this._getRelativeTileAreasForMonitor(monitorWorkArea);
+    _calculateTileAreas(monitorIdx, monitorWorkArea) {
+        const relTileAreas = this._getRelativeTileAreasForMonitor(monitorIdx, monitorWorkArea);
         let tileAreas = new Array(relTileAreas.length);
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
 
-            // Use Meta.Rectangle as this rect will be what gets passed into the tile preview &  window resize calls
-            //  it adds methods such as .equal() that gnome-shell uses.
-            tileAreas[i] = new Meta.Rectangle({
+            tileAreas[i] = new Tile(monitorIdx, {
                 x: monitorWorkArea.x + (monitorWorkArea.width * relArea.x),
                 y: monitorWorkArea.y + (monitorWorkArea.height * relArea.y),
                 width: monitorWorkArea.width * relArea.width,
@@ -53,7 +61,7 @@ var Tiles = class Tiles {
         return tileAreas;
     }
 
-    _getRelativeTileAreasForMonitor(monitorWorkArea) {
+    _getRelativeTileAreasForMonitor(monitorIdx, monitorWorkArea) {
         // Base the tiles off of the monitor aspect ratio range.
         //  Note that this is the work area, not the entire monitor area, so large taskbars etc... will be accounted for.
         const aspectRatio = monitorWorkArea.width / monitorWorkArea.height;
