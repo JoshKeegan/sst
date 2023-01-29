@@ -6,17 +6,6 @@ const Main = imports.ui.main;
 
 var Zones = class TilingZones {
     constructor() {
-        // TODO: Make configurable
-        // TODO: Apply different relative zone areas depending on monitor aspect ratio.
-        // These are my preference for a super-ultrawide but on a 16:9 or 16:10 widescreen (e.g. laptop)
-        // I would not want as many columns.
-        this._relativeZoneAreas = [
-            { x: 0, y: 0, width: 0.25, height: 0.5 },
-            { x: 0, y: 0.5, width: 0.25, height: 0.5 },
-            { x: 0.25, y: 0, width: 0.5, height: 1 },
-            { x: 0.75, y: 0, width: 0.25, height: 1 },
-        ];
-
         this._layoutSignalId = Main.layoutManager.connect('monitors-changed', this._refreshZones.bind(this));
         this._refreshZones();
     }
@@ -47,9 +36,10 @@ var Zones = class TilingZones {
     }
 
     _calculateZoneAreas(monitorWorkArea) {
-        let zoneAreas = new Array(this._relativeZoneAreas.length);
+        const relZoneAreas = this._getRelativeZoneAreasForMonitor(monitorWorkArea);
+        let zoneAreas = new Array(relZoneAreas.length);
         for (let i = 0; i < zoneAreas.length; i++) {
-            const relArea = this._relativeZoneAreas[i];
+            const relArea = relZoneAreas[i];
 
             // Use Meta.Rectangle as this rect will be what gets passed into the tile preview &  window resize calls
             //  it adds methods such as .equal() that gnome-shell uses.
@@ -61,5 +51,32 @@ var Zones = class TilingZones {
             });
         }
         return zoneAreas;
+    }
+
+    _getRelativeZoneAreasForMonitor(monitorWorkArea) {
+        // Base the zones off of the monitor aspect ratio range.
+        //  Note that this is the work area, not the entire monitor area, so large taskbars etc... will be accounted for.
+        const aspectRatio = monitorWorkArea.width / monitorWorkArea.height;
+
+        // TODO: Make configurable. These are just my preferences for current 32:9 desktop & 16:9 laptop displays.
+
+        // Super ultra-wide (~32:9) & ultra-wide (~21:9) use preiority columns (centre half of screen, left and right quarter) 
+        //  with a horizontal split on the left col.
+        if (aspectRatio > 2) {
+            return [
+                { x: 0, y: 0, width: 0.25, height: 0.5 },
+                { x: 0, y: 0.5, width: 0.25, height: 0.5 },
+                { x: 0.25, y: 0, width: 0.5, height: 1 },
+                { x: 0.75, y: 0, width: 0.25, height: 1 },
+            ];
+        }
+        // Otherwise it'll be my laptop screen, tile horizontally and then also tile the right half vertically.
+        else {
+            return [
+                { x: 0, y: 0, width: 0.5, height: 1 },
+                { x: 0.5, y: 0, width: 0.5, height: 0.5 },
+                { x: 0.5, y: 0.5, width: 0.5, height: 0.5},
+            ];
+        }
     }
 }
