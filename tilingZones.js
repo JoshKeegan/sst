@@ -1,5 +1,6 @@
 "use strict";
 
+const {Meta} = imports.gi;
 const {layout} = imports.ui;
 const Main = imports.ui.main;
 
@@ -50,12 +51,14 @@ var Zones = class TilingZones {
         for (let i = 0; i < zoneAreas.length; i++) {
             const relArea = this._relativeZoneAreas[i];
 
-            zoneAreas[i] = {
+            // Use Meta.Rectangle as this rect will be what gets passed into the tile preview &  window resize calls
+            //  it adds methods such as .equal() that gnome-shell uses.
+            zoneAreas[i] = new Meta.Rectangle({
                 x: monitorWorkArea.x + (monitorWorkArea.width * relArea.x),
                 y: monitorWorkArea.y + (monitorWorkArea.height * relArea.y),
                 width: monitorWorkArea.width * relArea.width,
                 height: monitorWorkArea.height * relArea.height
-            };
+            });
         }
         return zoneAreas;
     }
