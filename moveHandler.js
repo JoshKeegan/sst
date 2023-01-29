@@ -90,16 +90,12 @@ var Handler = class MoveHandler {
 
     _draw(grabOp, window) {
         const monitorIdx = global.display.get_current_monitor();
-
-        const zones = MainExtension.tilingZones.getZones(monitorIdx);
-        // TODO: Would be nice to display all possible zones (perhaps even on all monitors)
+        const tiles = MainExtension.tiles.getTiles(monitorIdx);
+        // TODO: Would be nice to display all possible tiles (perhaps even on all monitors)
         //  separate to the tile preview
 
-        // TODO: Select the zone that the cursor intersects
         const pointer = global.get_pointer();
-        log('sst: ptr x: ' + pointer[0] + ' y: ' + pointer[1]);
-
-        const tRect = this._selectZone(zones, pointer[0], pointer[1]);
+        const tRect = this._selectTileArea(tiles, pointer[0], pointer[1]);
 
         if (tRect != this._tileRect) {
             // If we already have another tile selected (window is being dragged), we have to close the existing one before
@@ -121,8 +117,8 @@ var Handler = class MoveHandler {
         this._tileRect = null;
     }
 
-    _selectZone(zones, xPtr, yPtr) {
-        return zones.find(zone => 
+    _selectTileArea(tiles, xPtr, yPtr) {
+        return tiles.find(zone => 
             zone.x <= xPtr && 
             zone.x + zone.width > xPtr &&
             zone.y <= yPtr &&

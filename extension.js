@@ -2,7 +2,7 @@
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const TilingZones = Me.imports.tilingZones;
+const Tiles = Me.imports.tiles;
 const MoveHandler = Me.imports.moveHandler;
     
 function enable() {
@@ -14,7 +14,7 @@ function enable() {
     this.gnome_shell_settings = ExtensionUtils.getSettings("org.gnome.shell.overrides");
     this.gnome_shell_settings.set_boolean("edge-tiling", false);
 
-    this.tilingZones = new TilingZones.Zones();
+    this.tiles = new Tiles.Tiles();
     this.windowMoveHandler = new MoveHandler.Handler();
 }
 
@@ -23,8 +23,8 @@ function disable() {
 
     this.windowMoveHandler.destroy();
     this.windowMoveHandler = null;
-    this.tilingZones.destroy();
-    this.tilingZones = null;
+    this.tiles.destroy();
+    this.tiles = null;
 
     // re-enable native tiling
     this.gnome_mutter_settings.reset("edge-tiling");
