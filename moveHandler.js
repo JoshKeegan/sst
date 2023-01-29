@@ -9,37 +9,37 @@ const MainExtension = Me.imports.extension;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 var Handler = class MoveHandler {
-	constructor() {
+    constructor() {
         const isMoving = grabOp => [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
 
-		this._displaySignals = [];
-		this._displaySignals.push(global.display.connect("grab-op-begin", (...params) => {
-			// pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
-			const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
-			if (window && isMoving(grabOp))
-				this._onMoveStarted(window, grabOp);
-		}));
-		this._displaySignals.push(global.display.connect("grab-op-end", (...params) => {
-			// pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
-			const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
-			if (window && isMoving(grabOp))
-				this._onMoveFinished(window);
-		}));
+        this._displaySignals = [];
+        this._displaySignals.push(global.display.connect("grab-op-begin", (...params) => {
+            // pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
+            const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
+            if (window && isMoving(grabOp))
+                this._onMoveStarted(window, grabOp);
+        }));
+        this._displaySignals.push(global.display.connect("grab-op-end", (...params) => {
+            // pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
+            const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
+            if (window && isMoving(grabOp))
+                this._onMoveFinished(window);
+        }));
 
-		this._posChangedId = 0;
-		this._lastActive = false;
+        this._posChangedId = 0;
+        this._lastActive = false;
 
-		this._tilePreview = new windowManager.TilePreview();
+        this._tilePreview = new windowManager.TilePreview();
 
-		// metaRect, which the grabbed window will tile to
-		this._tileRect = null;
+        // metaRect, which the grabbed window will tile to
+        this._tileRect = null;
     }
 
     destroy() {
-		this._displaySignals.forEach(sId => global.display.disconnect(sId));
-		(GNOME_VERSION < 3.36 ? this._tilePreview.actor : this._tilePreview).destroy();
-		this._tilePreview = null;
-	}
+        this._displaySignals.forEach(sId => global.display.disconnect(sId));
+        (GNOME_VERSION < 3.36 ? this._tilePreview.actor : this._tilePreview).destroy();
+        this._tilePreview = null;
+    }
 
     _onMoveStarted(window, grabOp) {
         log("sst: move started");
@@ -52,9 +52,9 @@ var Handler = class MoveHandler {
         log("sst: moved finished");
 
         if (this._posChangedId) {
-			window.disconnect(this._posChangedId);
-			this._posChangedId = 0;
-		}
+            window.disconnect(this._posChangedId);
+            this._posChangedId = 0;
+        }
 
         if (this._isMouseSnapKeyPressed()) {
             this._moveWindow(window, this._tileRect);

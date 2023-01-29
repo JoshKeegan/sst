@@ -1,8 +1,8 @@
 {
-  "name": "Super Simple Tiling",
-  "description": "Adds lightweight tiling to Gnome. Users can configure tiling zones that windows can then be snapped to and moved between.",
-  "uuid": "sst@joshkeegan.co.uk",
-  "shell-version": [
-    "3.36"
-  ]
+    "name": "Super Simple Tiling",
+    "description": "Adds lightweight tiling to Gnome. Users can configure tiling zones that windows can then be snapped to and moved between.",
+    "uuid": "sst@joshkeegan.co.uk",
+    "shell-version": [
+        "3.36"
+    ]
 }
