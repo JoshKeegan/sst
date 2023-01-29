@@ -56,7 +56,12 @@ var Handler = class MoveHandler {
 			this._posChangedId = 0;
 		}
 
+        if (this._isMouseSnapKeyPressed()) {
+            this._moveWindow(window, this._tileRect);
+        }
+
         this._tilePreview.close();
+        this._tileRect = null;
     }
 
     _onMoving(grabOp, window) {
@@ -122,5 +127,9 @@ var Handler = class MoveHandler {
             zone.x + zone.width > xPtr &&
             zone.y <= yPtr &&
             zone.y + zone.height > yPtr);
+    }
+
+    _moveWindow(window, rect) {
+        window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
     }
 }
