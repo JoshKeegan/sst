@@ -1,6 +1,5 @@
 "use strict";
 
-// TODO: Unit tests would be nice here
 var Calculator = class TileRelationshipCalculator {
     static addRelationships(tiles) {
         for (let i = 0; i < tiles.length; i++) {
