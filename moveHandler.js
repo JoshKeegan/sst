@@ -32,15 +32,16 @@ var Handler = class MoveHandler {
         this._posChangedId = 0;
         this._lastActive = false;
 
+        this._tileLayoutPreview = null;
         this._tilePreview = new windowManager.TilePreview();
 
-        // metaRect, which the grabbed window will tile to
+        // tile (extending metaRect), which the grabbed window will tile to
         this._tileRect = null;
     }
 
     destroy() {
         this._displaySignals.forEach(sId => global.display.disconnect(sId));
-        (GNOME_VERSION < 3.36 ? this._tilePreview.actor : this._tilePreview).destroy();
+        this._tilePreview.destroy();
         this._tilePreview = null;
     }
 
@@ -63,6 +64,8 @@ var Handler = class MoveHandler {
             this._moveWindow(window, this._tileRect);
         }
 
+        this._closeTileLayoutPreview();
+
         this._tilePreview.close();
         this._tileRect = null;
     }
@@ -77,6 +80,8 @@ var Handler = class MoveHandler {
             this._draw(grabOp, window, tileLayer);
         }
         else if (this._lastActive) {
+            this._closeTileLayoutPreview();
+
             this._undraw();
         }
         this._lastActive = active;
@@ -102,14 +107,15 @@ var Handler = class MoveHandler {
     }
 
     _draw(grabOp, window, tileLayer) {
+        this._openTileLayoutPreview(tileLayer);
+
+        // Calculate the tile the window will move to
         const monitorIdx = global.display.get_current_monitor();
         const tiles = MainExtension.tiles.getTiles(tileLayer, monitorIdx);
-        // TODO: Would be nice to display all possible tiles (perhaps even on all monitors)
-        //  separate to the tile preview
-
         const pointer = global.get_pointer();
         const tRect = this._selectTileArea(tiles, pointer[0], pointer[1]);
 
+        // Draw the preview of the tile the window will move to
         if (!tRect || !this._tileRect || !tRect.equal(this._tileRect)) {
             // If we already have another tile selected (window is being dragged), we have to close the existing one before
             //  opening a new preview. Also delay showing the next preview, if we reuse the tile preview whilst the last one is 
@@ -177,5 +183,26 @@ var Handler = class MoveHandler {
 
     _moveWindow(window, rect) {
         window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
+    }
+
+    _openTileLayoutPreview(tileLayer) {
+        const tileLayoutPreview = MainExtension.tiles.getTileLayoutPreview(tileLayer);
+
+        // If there is already a tile layout being previewed, and it is not the one for this
+        //  layer, close the old one first.
+        if (this._tileLayoutPreview !== null && this._tileLayoutPreview !== tileLayoutPreview) {
+            this._closeTileLayoutPreview();
+        }
+
+        tileLayoutPreview.open();
+        this._tileLayoutPreview = tileLayoutPreview;
+    }
+
+    _closeTileLayoutPreview() {
+        if (this._tileLayoutPreview === null) {
+            return;
+        }
+        this._tileLayoutPreview.close();
+        this._tileLayoutPreview = null;
     }
 }

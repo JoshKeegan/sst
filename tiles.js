@@ -8,9 +8,11 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 const Tile = Me.imports.tile.Tile;
+const TileLayoutPreview = Me.imports.tileLayoutPreview.TileLayoutPreview;
 
 var Tiles = class Tiles {
     constructor() {
+        this._previews = null;
         this._layoutSignalId = Main.layoutManager.connect('monitors-changed', this._refreshTiles.bind(this));
         this._refreshTiles();
     }
@@ -19,26 +21,44 @@ var Tiles = class Tiles {
         return this._tilesByMonitor[tileLayer][monitorIdx];
     }
 
+    getTileLayoutPreview(tileLayer) {
+        return this._previews[tileLayer];
+    }
+
     destroy() {
         Main.layoutManager.disconnect(this._layoutSignalId);
+        this._destroyPreviews();
+    }
+
+    _destroyPreviews() {
+        if(this._previews === null) {
+            return;
+        }
+        this._previews.forEach(p => p.destroy());
+
+        this._previews = null;
     }
 
     _refreshTiles() {
         log("sst: refreshing tiles");
+
+        this._destroyPreviews();
 
         const monitorWorkAreas = this._getMonitorWorkAreas();
 
         const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
         const secondLayerRelTileAreasByMon = topLayerRelTileAreasByMon.map(this._splitLayerTileAreas);
 
-        // tileLayer => monitorIdx => { x, y, width, height }
+        // tileLayer => monitorIdx => [{ x, y, width, height }]
         this._tilesByMonitor = [
             this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon),
             this._generateTilesByMonitor(monitorWorkAreas, secondLayerRelTileAreasByMon),
         ];
 
-        // tileLayer => { x, y, width, height }
+        // tileLayer => [{ x, y, width, height }]
         this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
+
+        this._previews = this._allTiles.map(tiles => new TileLayoutPreview(tiles));
     }
 
     _getMonitorWorkAreas() {

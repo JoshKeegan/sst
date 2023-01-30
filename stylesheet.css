@@ -1,1 +1,7 @@
-/* Add your custom extension styling here */
+/*
+    For gnome colours, see _palette.scss in gnome-shell
+*/
+
+.tile-layout-preview {
+    border: 1px solid #f8e45c;
+}
