@@ -71,6 +71,8 @@ var Handler = class MoveHandler {
         let active = this._isMouseSnapKeyPressed();
 
         if (active) {
+            // Split-tiling feature: if the split tile key is also pressed, use the second tile layer
+            //  which splits each of the top-level tiles into smaller ones.
             const tileLayer = this._isSplitTileKeyPressed() ? 1 : 0;
             this._draw(grabOp, window, tileLayer);
         }
