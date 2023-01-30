@@ -18,8 +18,8 @@ var Calculator = class TileRelationshipCalculator {
 
         let candidates = tiles.filter(t => 
             // Horizontally overlap
-            t.x <= (tile.x + tile.width) && 
-            (t.x + t.width) >= tile.x && 
+            t.x < (tile.x + tile.width) && 
+            (t.x + t.width) > tile.x && 
             // Candidate above this tile
             t.y < tile.y);
         
@@ -44,8 +44,8 @@ var Calculator = class TileRelationshipCalculator {
 
         let candidates = tiles.filter(t =>
             // Horizontally overlap
-            t.x <= (tile.x + tile.width) && 
-            (t.x + t.width) >= tile.x && 
+            t.x < (tile.x + tile.width) && 
+            (t.x + t.width) > tile.x && 
             // Candidate below this tile
             t.y > tile.y);
         
@@ -70,8 +70,8 @@ var Calculator = class TileRelationshipCalculator {
 
         let candidates = tiles.filter(t => 
             // Vertically overlap
-            t.y <= (tile.y + tile.height) &&
-            (t.y + t.height) >= tile.y && 
+            t.y < (tile.y + tile.height) &&
+            (t.y + t.height) > tile.y && 
             // Candidate to the left of this tile
             t.x < tile.x);
         
@@ -96,8 +96,8 @@ var Calculator = class TileRelationshipCalculator {
 
         let candidates = tiles.filter(t => 
             // Vertically overlap
-            t.y <= (tile.y + tile.height) &&
-            (t.y + t.height) >= tile.y && 
+            t.y < (tile.y + tile.height) &&
+            (t.y + t.height) > tile.y && 
             // Candidate to the right of this tile
             t.x > tile.x);
         
