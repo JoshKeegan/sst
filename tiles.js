@@ -15,8 +15,8 @@ var Tiles = class Tiles {
         this._refreshTiles();
     }
 
-    getTiles(monitorIdx) {
-        return this._tilesByMonitor[monitorIdx];
+    getTiles(tileLayer, monitorIdx) {
+        return this._tilesByMonitor[tileLayer][monitorIdx];
     }
 
     destroy() {
@@ -26,27 +26,50 @@ var Tiles = class Tiles {
     _refreshTiles() {
         log("sst: refreshing tiles");
 
+        const monitorWorkAreas = this._getMonitorWorkAreas();
+
+        const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
+        const secondLayerRelTileAreasByMon = topLayerRelTileAreasByMon.map(this._splitLayerTileAreas);
+
+        // tileLayer => monitorIdx => { x, y, width, height }
+        this._tilesByMonitor = [
+            this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon),
+            this._generateTilesByMonitor(monitorWorkAreas, secondLayerRelTileAreasByMon),
+        ];
+
+        // tileLayer => { x, y, width, height }
+        this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
+    }
+
+    _getMonitorWorkAreas() {
         // Assume that all workspaces will be the same & just use the first.
         //  gnome-shell makes the same assumption internally so seems safe enough for now...
         let ws = global.workspace_manager.get_workspace_by_index(0);
 
-        this._tilesByMonitor = new Array(Main.layoutManager.monitors.length);        
-        for (let i = 0; i < Main.layoutManager.monitors.length; i++) {
-            const monitorWorkArea = ws.get_work_area_for_monitor(i);
-            log("work area monitor idx: " + i + " w: " + monitorWorkArea.width + " h: " + monitorWorkArea.height);
-
-            // monitor idx => { x, y, width, height }
-            this._tilesByMonitor[i] = this._calculateTileAreas(i, monitorWorkArea);
+        const workAreas = new Array(Main.layoutManager.monitors.length);
+        for (let i = 0; i < workAreas.length; i++) {
+            workAreas[i] = ws.get_work_area_for_monitor(i);
+            log("work area monitor idx: " + i + " w: " + workAreas[i].width + " h: " + workAreas[i].height);
         }
-
-        // Combine individual arrays of tiles per monitor into a global array of all tiles
-        this._allTiles = [];
-        this._tilesByMonitor.forEach(tiles => this._allTiles = this._allTiles.concat(tiles));
-        TileRelationshipCalculator.addRelationships(this._allTiles);
+        return workAreas;
     }
 
-    _calculateTileAreas(monitorIdx, monitorWorkArea) {
-        const relTileAreas = this._getRelativeTileAreasForMonitor(monitorIdx, monitorWorkArea);
+    _generateTilesByMonitor(monitorWorkAreas, relativeTileAreasByMonitor) {
+        const tilesByMonitor = new Array(monitorWorkAreas.length);        
+        for (let i = 0; i < monitorWorkAreas.length; i++) {
+            tilesByMonitor[i] = this._calculateTileAreas(i, monitorWorkAreas[i], relativeTileAreasByMonitor[i]);
+        }
+        return tilesByMonitor;
+    }
+
+    _generateAllTiles(tilesByMonitor) {
+        let allTiles = [];
+        tilesByMonitor.forEach(tiles => allTiles = allTiles.concat(tiles));
+        TileRelationshipCalculator.addRelationships(allTiles);
+        return allTiles;
+    }
+
+    _calculateTileAreas(monitorIdx, monitorWorkArea, relTileAreas) {
         let tileAreas = new Array(relTileAreas.length);
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
@@ -61,7 +84,7 @@ var Tiles = class Tiles {
         return tileAreas;
     }
 
-    _getRelativeTileAreasForMonitor(monitorIdx, monitorWorkArea) {
+    _getRelativeTileAreasForMonitor(monitorWorkArea) {
         // Base the tiles off of the monitor aspect ratio range.
         //  Note that this is the work area, not the entire monitor area, so large taskbars etc... will be accounted for.
         const aspectRatio = monitorWorkArea.width / monitorWorkArea.height;
@@ -86,5 +109,45 @@ var Tiles = class Tiles {
                 { x: 0.5, y: 0.5, width: 0.5, height: 0.5},
             ];
         }
+    }
+
+    _splitLayerTileAreas(topLayerTileAreas) {
+        const splitLayerTileAreas = [];
+        for (let i = 0; i < topLayerTileAreas.length; i++) {
+            const topTile = topLayerTileAreas[i];
+
+            const w = topTile.width / 2;
+            const h = topTile.height / 2;
+
+            // Top left
+            splitLayerTileAreas.push({
+                x: topTile.x,
+                y: topTile.y,
+                width: w,
+                height: h,
+            });
+            // Top right
+            splitLayerTileAreas.push({
+                x: topTile.x + w,
+                y: topTile.y,
+                width: w,
+                height: h,
+            });
+            // Bottom left
+            splitLayerTileAreas.push({
+                x: topTile.x,
+                y: topTile.y + h,
+                width: w,
+                height: h,
+            });
+            // Bottom right
+            splitLayerTileAreas.push({
+                x: topTile.x + w,
+                y: topTile.y + h,
+                width: w,
+                height: h,
+            });
+        }
+        return splitLayerTileAreas;
     }
 }

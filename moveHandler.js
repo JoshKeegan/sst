@@ -47,8 +47,8 @@ var Handler = class MoveHandler {
     _onMoveStarted(window, grabOp) {
         log("sst: move started");
 
-        this._posChangedId = window.connect("position-changed"
-            , this._onMoving.bind(this, grabOp, window));
+        this._posChangedId = window.connect("position-changed",
+            this._onMoving.bind(this, grabOp, window));
     }
 
     _onMoveFinished(window) {
@@ -71,7 +71,8 @@ var Handler = class MoveHandler {
         let active = this._isMouseSnapKeyPressed();
 
         if (active) {
-            this._draw(grabOp, window);
+            const tileLayer = this._isSplitTileKeyPressed() ? 1 : 0;
+            this._draw(grabOp, window, tileLayer);
         }
         else if (this._lastActive) {
             this._undraw();
@@ -81,16 +82,26 @@ var Handler = class MoveHandler {
 
     _isMouseSnapKeyPressed() {
         // TODO: Make key configurable
-        const modMask = Clutter.ModifierType.CONTROL_MASK;
+        return this._isKeyPressed(Clutter.ModifierType.CONTROL_MASK);
+    }
 
+    _isSplitTileKeyPressed() {
+        // See CLUTTER_MOD1_MASK & CLUTTER_MOD5_MASK in Mutter enum ClutterModifierType
+        // Seems like they aren't defined in older versions.
+        const leftAlt = 1 << 3;
+        const rightAlt = 1 << 7;
+        return this._isKeyPressed(leftAlt | rightAlt);
+    }
+
+    _isKeyPressed(modMask) {
         const event = Clutter.get_current_event();
         const modifiers = event ? event.get_state() : 0;
         return (modifiers & modMask) !== 0;
     }
 
-    _draw(grabOp, window) {
+    _draw(grabOp, window, tileLayer) {
         const monitorIdx = global.display.get_current_monitor();
-        const tiles = MainExtension.tiles.getTiles(monitorIdx);
+        const tiles = MainExtension.tiles.getTiles(tileLayer, monitorIdx);
         // TODO: Would be nice to display all possible tiles (perhaps even on all monitors)
         //  separate to the tile preview
 
