@@ -8,7 +8,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 const Tile = Me.imports.tile.Tile;
-const TileLayoutPreview = Me.imports.tileLayoutPreview.TileLayoutPreview;
+const TileLayoutPreview = Me.imports.tileLayoutPreview.Preview;
 
 var Tiles = class Tiles {
     constructor() {
