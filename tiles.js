@@ -47,13 +47,11 @@ var Tiles = class Tiles {
         const monitorWorkAreas = this._getMonitorWorkAreas();
 
         const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
-        const secondLayerRelTileAreasByMon = topLayerRelTileAreasByMon.map(this._splitLayerTileAreas);
 
         // tileLayer => monitorIdx => [{ x, y, width, height }]
-        this._tilesByMonitor = [
-            this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon),
-            this._generateTilesByMonitor(monitorWorkAreas, secondLayerRelTileAreasByMon),
-        ];
+        this._tilesByMonitor = new Array(2);
+        this._tilesByMonitor[0] = this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon);
+        this._tilesByMonitor[1] = this._tilesByMonitor[0].map(this._splitLayerTileAreas);
 
         // tileLayer => [{ x, y, width, height }]
         this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
@@ -136,37 +134,49 @@ var Tiles = class Tiles {
         for (let i = 0; i < topLayerTileAreas.length; i++) {
             const topTile = topLayerTileAreas[i];
 
-            const w = topTile.width / 2;
-            const h = topTile.height / 2;
+            log("w: " + topTile.width + "h: " + topTile.height);
 
-            // Top left
-            splitLayerTileAreas.push({
-                x: topTile.x,
-                y: topTile.y,
-                width: w,
-                height: h,
-            });
-            // Top right
-            splitLayerTileAreas.push({
-                x: topTile.x + w,
-                y: topTile.y,
-                width: w,
-                height: h,
-            });
-            // Bottom left
-            splitLayerTileAreas.push({
-                x: topTile.x,
-                y: topTile.y + h,
-                width: w,
-                height: h,
-            });
-            // Bottom right
-            splitLayerTileAreas.push({
-                x: topTile.x + w,
-                y: topTile.y + h,
-                width: w,
-                height: h,
-            });
+            // Split each tile in two along its longest axis.
+            //  Vertical split
+            if (topTile.height > topTile.width) {
+                const w = topTile.width;
+                const h = topTile.height / 2;
+
+                // Top
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, {
+                    x: topTile.x,
+                    y: topTile.y,
+                    width: w,
+                    height: h,
+                }));
+                // Bottom
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, {
+                    x: topTile.x,
+                    y: topTile.y + h,
+                    width: w,
+                    height: h,
+                }));
+            }
+            // Horizontal split (including if tile is exacxtly square)
+            else {
+                const w = topTile.width / 2;
+                const h = topTile.height;
+
+                // Left
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, {
+                    x: topTile.x,
+                    y: topTile.y,
+                    width: w,
+                    height: h,
+                }));
+                // Right
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, {
+                    x: topTile.x + w,
+                    y: topTile.y,
+                    width: w,
+                    height: h,
+                }));
+            }
         }
         return splitLayerTileAreas;
     }
