@@ -49,9 +49,10 @@ var Tiles = class Tiles {
         const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
 
         // tileLayer => monitorIdx => [{ x, y, width, height }]
-        this._tilesByMonitor = new Array(2);
+        this._tilesByMonitor = new Array(3);
         this._tilesByMonitor[0] = this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon);
         this._tilesByMonitor[1] = this._tilesByMonitor[0].map(this._splitLayerTileAreas);
+        this._tilesByMonitor[2] = this._tilesByMonitor[1].map(this._splitLayerTileAreas);
 
         // tileLayer => [{ x, y, width, height }]
         this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);

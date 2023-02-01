@@ -76,7 +76,7 @@ var Handler = class MoveHandler {
         if (active) {
             // Split-tiling feature: if the split tile key is also pressed, use the second tile layer
             //  which splits each of the top-level tiles into smaller ones.
-            const tileLayer = this._isSplitTileKeyPressed() ? 1 : 0;
+            const tileLayer = this._isSplitTile1KeyPressed() ? (this._isSplitTile2KeyPressed() ? 2 : 1) : 0;
             this._draw(grabOp, window, tileLayer);
         }
         else if (this._lastActive) {
@@ -92,12 +92,18 @@ var Handler = class MoveHandler {
         return this._isKeyPressed(Clutter.ModifierType.CONTROL_MASK);
     }
 
-    _isSplitTileKeyPressed() {
+    _isSplitTile1KeyPressed() {
         // See CLUTTER_MOD1_MASK & CLUTTER_MOD5_MASK in Mutter enum ClutterModifierType
         // Seems like they aren't defined in older versions.
         const leftAlt = 1 << 3;
         const rightAlt = 1 << 7;
         return this._isKeyPressed(leftAlt | rightAlt);
+    }
+
+    _isSplitTile2KeyPressed() {
+        // See CLUTTER_MOD1_MASK & CLUTTER_MOD5_MASK in Mutter enum ClutterModifierType
+        // Seems like they aren't defined in older versions.
+        return this._isKeyPressed(1 << 6); // Super key (left or right)
     }
 
     _isKeyPressed(modMask) {
