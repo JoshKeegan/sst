@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.sst" path="/org/gnome/shell/extensions/sst/">
+    <key name="tile-move-up" type="as">
+      <default><![CDATA[['<Super>Up']]]></default>
+    </key>
+    <key name="tile-move-down" type="as">
+      <default><![CDATA[['<Super>Down']]]></default>
+    </key>
+    <key name="tile-move-left" type="as">
+      <default><![CDATA[['<Super>Left']]]></default>
+    </key>
+    <key name="tile-move-right" type="as">
+      <default><![CDATA[['<Super>Right']]]></default>
+    </key>
+  </schema>
+</schemalist>

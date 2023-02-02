@@ -12,6 +12,10 @@ indent_style = tab
 indent_style = space
 indent_size = 2
 
+[*.xml]
+indent_style = space
+indent_size = 2
+
 [{*.js,*.json}]
 indent_style = space
 indent_size = 4

@@ -21,6 +21,10 @@ var Tiles = class Tiles {
         return this._tilesByMonitor[tileLayer][monitorIdx];
     }
 
+    getAllTiles(tileLayer) {
+        return this._allTiles[tileLayer];
+    }
+
     getTileLayoutPreview(tileLayer) {
         return this._previews[tileLayer];
     }
