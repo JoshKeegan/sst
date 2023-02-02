@@ -22,7 +22,7 @@ Normal dev workflow will be:
  - Enable extension
 
 ## API
-Gnome extensions are built on top of the gnome-shell JS code. Docs don't seem to exist, but you can read source code:
+Gnome extensions are built on top of the gnome-shell JS code. [Very high level docs](https://wiki.gnome.org/Projects/GnomeShell/Extensions#Creating_Extensions) exist, but the API itself isn't. You can however read source code:
  - [gnome-shell](https://gitlab.gnome.org/GNOME/gnome-shell/) - JS code that extensions monkey-patch to add or modify behaviour.
  - [mutter](https://gitlab.gnome.org/GNOME/mutter) - underlying C code for the mutter window manager (current Gnome default) which gnome-shell sits on-top of.
  - [Tiling-Assistant](https://github.com/Leleat/Tiling-Assistant) - another gnome-shell extension for tiling, with different use-cases. This, and other compatibly licensed extensions are a good source of examples instead of docs.
