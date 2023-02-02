@@ -39,6 +39,12 @@ var Handler = class KeybindHandler {
         {
             return;
         }
+
+        // Special case: if moving down and the window is fullscreen, then come out of fullscreen
+        if (settingName === "tile-move-down" && window.is_fullscreen()) {
+            window.unmake_fullscreen();
+            return;
+        }
 		
         // TODO: Tile layers
         const tiles = MainExtension.tiles.getAllTiles(0);
@@ -46,12 +52,13 @@ var Handler = class KeybindHandler {
         // If the current window exactly matches a tile then move relative to that tile
         const currentTile = this._selectCurrentTile(tiles, window);
         let targetRect = null;
-        if(currentTile !== null) {
+        if (currentTile !== null) {
             targetRect = nextTileSelector(currentTile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
-            if(settingName === "tile-move-up" && targetRect === null) {
-                // TODO
+            if (settingName === "tile-move-up" && targetRect === null) {
+                window.make_fullscreen();
+                return;
             }
         }
         // TODO: Else select the tile closest to the centre of the current window & move the window there
