@@ -35,7 +35,7 @@ var Handler = class KeybindHandler {
         log("Pressed " + settingName);
 
         const window = global.display.focus_window;
-		if (!window)
+        if (!window)
         {
             return;
         }
@@ -45,7 +45,7 @@ var Handler = class KeybindHandler {
             window.unmake_fullscreen();
             return;
         }
-		
+        
         // TODO: Tile layers
         const tiles = MainExtension.tiles.getAllTiles(0);
 
