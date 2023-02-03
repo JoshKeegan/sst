@@ -4,9 +4,7 @@ Checkout the repo to `~/.local/share/gnome-shell/extensions` so that code change
 
 Run `make settings-schema-compile` to compile the settings schema. This is needed one-off initially, and then only needs to be re-run after schema changes.
 
-To access gnome-shell logs (where any `log` calls in the extension will be logged to):
- - For X11 run: `journalctl -f -o cat /usr/bin/gnome-shell`
- - For Wayland run: `dbus-run-session -- gnome-shell --nested --wayland`
+To access gnome-shell logs (where any `log` calls in the extension will be logged to) run `make gnome-shell-logs`.
 
 To enable/disable the extension, run:
 ```bash
