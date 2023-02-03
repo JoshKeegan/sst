@@ -1,5 +1,9 @@
 "use strict";
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
+const Geometry = Me.imports.geometry.Geometry;
+
 var Calculator = class TileRelationshipCalculator {
     static addRelationships(tiles) {
         for (let i = 0; i < tiles.length; i++) {
@@ -14,7 +18,7 @@ var Calculator = class TileRelationshipCalculator {
     /**
      * Finds the tile above the top of the supplied rectangle (may overlap)
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param rect rectanagle to find tile relative to
+     * @param {Meta.Rectangle} rect rectanagle to find tile relative to
      * @returns closest tile
      */
     static findUp(tiles, rect) {
@@ -33,7 +37,7 @@ var Calculator = class TileRelationshipCalculator {
     /**
      * Finds the tile below the bottom of the supplied rectangle (may overlap)
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param rect rectanagle to find tile relative to
+     * @param {Meta.Rectangle} rect rectanagle to find tile relative to
      * @returns closest tile
      */
     static findDown(tiles, rect) {
@@ -52,7 +56,7 @@ var Calculator = class TileRelationshipCalculator {
     /**
      * Finds the tile to the left of the supplied rectangle (may overlap)
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param rect rectanagle to find tile relative to
+     * @param {Meta.Rectangle} rect rectanagle to find tile relative to
      * @returns closest tile
      */
     static findLeft(tiles, rect) {
@@ -71,7 +75,7 @@ var Calculator = class TileRelationshipCalculator {
     /**
      * Finds the tile to the right of the supplied rectangle (may overlap)
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param rect rectanagle to find tile relative to
+     * @param {Meta.Rectangle} rect rectanagle to find tile relative to
      * @returns closest tile
      */
     static findRight(tiles, rect) {
@@ -85,6 +89,47 @@ var Calculator = class TileRelationshipCalculator {
         // Sort by x asc to find the closest
         candidates = candidates.sort((a, b) => a.x > b.x);
         return candidates.length > 0 ? candidates[0] : null;
+    }
+
+    /**
+     * Finds the tile with the largest intersecting area to the supplied rectangle.
+     * @param tiles array of tiles to consider (should be all tiles in the current layer)
+     * @param {Meta.Rectangle} rect rectangle to find tile relative to
+     */
+    static findLargestIntersection(tiles, rect) {
+        let iArea = 0;
+        let iTile = null;
+        for (let i = 0; i < tiles.length; i++) {
+            const [intersect, iRect] = rect.intersect(tiles[i]);
+            if (intersect) {
+                const a = iRect.width * iRect.height;
+                if (a > iArea) {
+                    iArea = a;
+                    iTile = tiles[i];
+                }
+            }
+        }
+        return iTile;
+    }
+
+    /**
+     * Finds the tile closest to the supplied rectangle, in any direction. 
+     * If overlapping, will find the one with the shortest distance between corners.
+     * @param tiles array of tiles to consider (should be all tiles in the current layer)
+     * @param {Meta.Rectangle} rect rectangle to find tile relative to
+     * @returns closest tile
+     */
+    static findClosest(tiles, rect) {
+        let dBest = Infinity;
+        let tBest = null;
+        for (let i = 0; i < tiles.length; i++) {
+            const d = Geometry.euclideanDistanceBetweenClosestCorners(tiles[i], rect);
+            if (d < dBest) {
+                dBest = d;
+                tBest = tiles[i];
+            }
+        }
+        return tBest;
     }
 
     static _addUpRelationship(tiles, tile) {

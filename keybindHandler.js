@@ -68,6 +68,7 @@ var Handler = class KeybindHandler {
         const currentTile = this._selectCurrentTile(tiles, wRect);
         let targetRect = null;
         if (currentTile !== null) {
+            log(`Currently in tile, moving ${settingName} relative to it`);
             targetRect = nextTileSelector(currentTile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
@@ -78,17 +79,29 @@ var Handler = class KeybindHandler {
         }
         // Else the window is floating
         else {
+            log(`Window is floating, searching for best tile ${settingName}`);
             // Find the closest tile in the direction we want to move in
             targetRect = floatingTileSelector(tiles, wRect);
 
-            // If there is no tile in that direction, find the tile closest to the centre of the window
+            // If there is no tile in that direction, find the tile with the largest intersection area
             if (targetRect === null) {
-                // TODO
-                targetRect = tiles[0];
+                log(`No tile in target direction ${settingName}, using tile with the largest intersection area`);
+                targetRect = TileRelationshipCalculator.findLargestIntersection(tiles, wRect);
+            }
+
+            // If the window does not intersect a tile, find the closest one
+            if (targetRect === null) {
+                log("Floating window intersects no tiles, using closest one");
+                targetRect = TileRelationshipCalculator.findClosest(tiles, wRect);
             }
         }
 
-        this._moveWindow(window, targetRect);
+        if (targetRect !== null) {
+            this._moveWindow(window, targetRect);
+        }
+        else {
+            log(`No target for movement ${settingName} found, not moving window`);
+        }
     }
 
     /**

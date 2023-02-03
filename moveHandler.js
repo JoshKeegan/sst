@@ -7,6 +7,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const Tile = Me.imports.tile.Tile;
+const Geometry = Me.imports.geometry.Geometry;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
@@ -119,7 +120,7 @@ var Handler = class MoveHandler {
         const monitorIdx = global.display.get_current_monitor();
         const tiles = MainExtension.tiles.getTiles(tileLayer, monitorIdx);
         const pointer = global.get_pointer();
-        const tRect = this._selectTileArea(tiles, pointer[0], pointer[1]);
+        const tRect = this._selectTileArea(tiles, { x: pointer[0], y: pointer[1] });
 
         // Draw the preview of the tile the window will move to
         if (!tRect || !this._tileRect || !tRect.equal(this._tileRect)) {
@@ -142,12 +143,8 @@ var Handler = class MoveHandler {
         this._tileRect = null;
     }
 
-    _selectTileArea(tiles, xPtr, yPtr) {
-        const tile = tiles.find(t => 
-            t.x <= xPtr && 
-            t.x + t.width > xPtr &&
-            t.y <= yPtr &&
-            t.y + t.height > yPtr);
+    _selectTileArea(tiles, ptr) {
+        const tile = tiles.find(t =>  Geometry.contains(t, ptr));
         
         // Combined tiling feature: if close to an edge of the tile, the target area 
         //  can be combined with the adjacent tile, if both tiles are on the same monitor.
@@ -155,32 +152,31 @@ var Handler = class MoveHandler {
         //  is used to allow for small gaps to be left between tiles if someone wanted to 
         //  leave borders.
         let combinedTile = tile;
-
         // Left
         if (tile.relationships.left !== null && 
             tile.relationships.left.monitorIdx === tile.monitorIdx &&
-            xPtr < tile.x + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            ptr.x < tile.x + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
             combinedTile = Tile.combine(combinedTile, tile.relationships.left);
         }
 
         // Right
         if (tile.relationships.right !== null && 
             tile.relationships.right.monitorIdx === tile.monitorIdx &&
-            xPtr > tile.x + tile.width - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            ptr.x > tile.x + tile.width - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
             combinedTile = Tile.combine(combinedTile, tile.relationships.right);
         }
 
         // Up
         if (tile.relationships.up !== null &&
             tile.relationships.up.monitorIdx === tile.monitorIdx && 
-            yPtr < tile.y + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            ptr.y < tile.y + COMBINED_TILES_TRIGGER_DISTANCE_PX) {
             combinedTile = Tile.combine(combinedTile, tile.relationships.up);
         }
 
         // Down
         if (tile.relationships.down !== null && 
             tile.relationships.down.monitorIdx === tile.monitorIdx && 
-            yPtr > tile.y + tile.height - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
+            ptr.y > tile.y + tile.height - COMBINED_TILES_TRIGGER_DISTANCE_PX) {
                 combinedTile = Tile.combine(combinedTile, tile.relationships.down);
         }
 
