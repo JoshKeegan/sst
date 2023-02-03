@@ -6,22 +6,36 @@ const {Gio, Meta, Shell} = imports.gi;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
+const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 
 const tileMoveKeys = {
-    "tile-move-up": t => t.relationships.up,
-    "tile-move-down": t => t.relationships.down,
-    "tile-move-left": t => t.relationships.left,
-    "tile-move-right": t => t.relationships.right,
+    "tile-move-up": {
+        nextTileSelector: t => t.relationships.up,
+        floatingTileSelector: TileRelationshipCalculator.findUp,
+    },
+    "tile-move-down": {
+        nextTileSelector: t => t.relationships.down,
+        floatingTileSelector: TileRelationshipCalculator.findDown,
+    },
+    "tile-move-left": {
+        nextTileSelector: t => t.relationships.left,
+        floatingTileSelector: TileRelationshipCalculator.findLeft,
+    },
+    "tile-move-right": {
+        nextTileSelector: t => t.relationships.right,
+        floatingTileSelector: TileRelationshipCalculator.findRight,
+    }
 };
 
 var Handler = class KeybindHandler {
     constructor() {
         for (const settingName in tileMoveKeys) {
+            const handlers = tileMoveKeys[settingName];
             main.wm.addKeybinding(settingName, 
                 MainExtension.settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-                this._onTileMoveKeyPressed.bind(this, settingName, tileMoveKeys[settingName]))
+                this._onTileMoveKeyPressed.bind(this, settingName, handlers.nextTileSelector, handlers.floatingTileSelector))
         }
     }
 
@@ -31,7 +45,7 @@ var Handler = class KeybindHandler {
         }
     }
 
-    _onTileMoveKeyPressed(settingName, nextTileSelector) {
+    _onTileMoveKeyPressed(settingName, nextTileSelector, floatingTileSelector) {
         log("Pressed " + settingName);
 
         const window = global.display.focus_window;
@@ -45,12 +59,13 @@ var Handler = class KeybindHandler {
             window.unmake_fullscreen();
             return;
         }
-        
+
         // TODO: Tile layers
         const tiles = MainExtension.tiles.getAllTiles(0);
 
         // If the current window exactly matches a tile then move relative to that tile
-        const currentTile = this._selectCurrentTile(tiles, window);
+        const wRect = window.get_frame_rect();
+        const currentTile = this._selectCurrentTile(tiles, wRect);
         let targetRect = null;
         if (currentTile !== null) {
             targetRect = nextTileSelector(currentTile);
@@ -61,9 +76,16 @@ var Handler = class KeybindHandler {
                 return;
             }
         }
-        // TODO: Else select the tile closest to the centre of the current window & move the window there
+        // Else the window is floating
         else {
-            targetRect = tiles[0];
+            // Find the closest tile in the direction we want to move in
+            targetRect = floatingTileSelector(tiles, wRect);
+
+            // If there is no tile in that direction, find the tile closest to the centre of the window
+            if (targetRect === null) {
+                // TODO
+                targetRect = tiles[0];
+            }
         }
 
         this._moveWindow(window, targetRect);
@@ -72,10 +94,9 @@ var Handler = class KeybindHandler {
     /**
      * Finds which tile the window is tiled to. Returns null if floating/not tiled
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param window 
+     * @param wRect rectangle of the current window
      */
-    _selectCurrentTile(tiles, window) {
-        const wRect = window.get_frame_rect();
+    _selectCurrentTile(tiles, wRect) {
         log(`window x: ${wRect.x} y: ${wRect.y} w: ${wRect.width} h: ${wRect.height}`);
         log(`tile x: ${tiles[0].x} y: ${tiles[0].y} w: ${tiles[0].width} h: ${tiles[0].height}`);
 
