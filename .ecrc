@@ -1,0 +1,6 @@
+{
+    "Exclude": [
+        "^.git/",
+        "^schemas/gschemas.compiled$"
+    ]
+}
