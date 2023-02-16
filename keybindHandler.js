@@ -8,24 +8,32 @@ const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 
-const tileMoveKeys = {
-    "tile-move-up": {
-        nextTileSelector: t => t.relationships.up,
-        floatingTileSelector: TileRelationshipCalculator.findUp,
-    },
-    "tile-move-down": {
-        nextTileSelector: t => t.relationships.down,
-        floatingTileSelector: TileRelationshipCalculator.findDown,
-    },
-    "tile-move-left": {
-        nextTileSelector: t => t.relationships.left,
-        floatingTileSelector: TileRelationshipCalculator.findLeft,
-    },
-    "tile-move-right": {
-        nextTileSelector: t => t.relationships.right,
-        floatingTileSelector: TileRelationshipCalculator.findRight,
+const tileMoveKeys = function(){
+    let keys = [];
+    for (let i = 0; i < 3; i++) {
+        keys[`tile-move-up-layer-${i}`] = {
+            nextTileSelector: t => t.relationships.up,
+            floatingTileSelector: TileRelationshipCalculator.findUp,
+            tileLayer: i,
+        };
+        keys[`tile-move-down-layer-${i}`] = {
+            nextTileSelector: t => t.relationships.down,
+            floatingTileSelector: TileRelationshipCalculator.findDown,
+            tileLayer: i,
+        };
+        keys[`tile-move-left-layer-${i}`] = {
+            nextTileSelector: t => t.relationships.left,
+            floatingTileSelector: TileRelationshipCalculator.findLeft,
+            tileLayer: i,
+        };
+        keys[`tile-move-right-layer-${i}`] = {
+            nextTileSelector: t => t.relationships.right,
+            floatingTileSelector: TileRelationshipCalculator.findRight,
+            tileLayer: i,
+        };
     }
-};
+    return keys;
+}();
 
 var Handler = class KeybindHandler {
     constructor() {
@@ -35,7 +43,12 @@ var Handler = class KeybindHandler {
                 MainExtension.settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-                this._onTileMoveKeyPressed.bind(this, settingName, handlers.nextTileSelector, handlers.floatingTileSelector))
+                this._onTileMoveKeyPressed.bind(
+                    this, 
+                    settingName, 
+                    handlers.nextTileSelector, 
+                    handlers.floatingTileSelector, 
+                    handlers.tileLayer))
         }
     }
 
@@ -45,7 +58,7 @@ var Handler = class KeybindHandler {
         }
     }
 
-    _onTileMoveKeyPressed(settingName, nextTileSelector, floatingTileSelector) {
+    _onTileMoveKeyPressed(settingName, nextTileSelector, floatingTileSelector, tileLayer) {
         log("Pressed " + settingName);
 
         const window = global.display.focus_window;
@@ -60,8 +73,7 @@ var Handler = class KeybindHandler {
             return;
         }
 
-        // TODO: Tile layers
-        const tiles = MainExtension.tiles.getAllTiles(0);
+        const tiles = MainExtension.tiles.getAllTiles(tileLayer);
 
         // If the current window exactly matches a tile then move relative to that tile
         const wRect = window.get_frame_rect();

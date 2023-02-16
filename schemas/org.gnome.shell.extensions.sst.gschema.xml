@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.sst" path="/org/gnome/shell/extensions/sst/">
-    <key name="tile-move-up" type="as">
-      <default><![CDATA[['<Super>Up']]]></default>
+    <key name="tile-move-up-layer-0" type="as">
+      <default><![CDATA[['<Super>Up', '<Ctrl>Up']]]></default>
     </key>
-    <key name="tile-move-down" type="as">
-      <default><![CDATA[['<Super>Down']]]></default>
+    <key name="tile-move-down-layer-0" type="as">
+      <default><![CDATA[['<Super>Down', '<Ctrl>Down']]]></default>
     </key>
-    <key name="tile-move-left" type="as">
-      <default><![CDATA[['<Super>Left']]]></default>
+    <key name="tile-move-left-layer-0" type="as">
+      <default><![CDATA[['<Super>Left', '<Ctrl>Left']]]></default>
     </key>
-    <key name="tile-move-right" type="as">
-      <default><![CDATA[['<Super>Right']]]></default>
+    <key name="tile-move-right-layer-0" type="as">
+      <default><![CDATA[['<Super>Right', '<Ctrl>Right']]]></default>
+    </key>
+    <key name="tile-move-up-layer-1" type="as">
+      <default><![CDATA[['<Super><Ctrl>Up', '<Super><Alt>Up']]]></default>
+    </key>
+    <key name="tile-move-down-layer-1" type="as">
+      <default><![CDATA[['<Super><Ctrl>Down', '<Super><Alt>Down']]]></default>
+    </key>
+    <key name="tile-move-left-layer-1" type="as">
+      <default><![CDATA[['<Super><Ctrl>Left', '<Super><Alt>Left']]]></default>
+    </key>
+    <key name="tile-move-right-layer-1" type="as">
+      <default><![CDATA[['<Super><Ctrl>Right', '<Super><Alt>Right']]]></default>
+    </key>
+    <key name="tile-move-up-layer-2" type="as">
+      <default><![CDATA[['<Super><Ctrl><Alt>Up']]]></default>
+    </key>
+    <key name="tile-move-down-layer-2" type="as">
+      <default><![CDATA[['<Super><Ctrl><Alt>Down']]]></default>
+    </key>
+    <key name="tile-move-left-layer-2" type="as">
+      <default><![CDATA[['<Super><Ctrl><Alt>Left']]]></default>
+    </key>
+    <key name="tile-move-right-layer-2" type="as">
+      <default><![CDATA[['<Super><Ctrl><Alt>Right']]]></default>
     </key>
   </schema>
 </schemalist>
