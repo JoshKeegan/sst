@@ -2,16 +2,16 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.sst" path="/org/gnome/shell/extensions/sst/">
     <key name="tile-move-up-layer-0" type="as">
-      <default><![CDATA[['<Super>Up', '<Ctrl>Up']]]></default>
+      <default><![CDATA[['<Super>Up']]]></default>
     </key>
     <key name="tile-move-down-layer-0" type="as">
-      <default><![CDATA[['<Super>Down', '<Ctrl>Down']]]></default>
+      <default><![CDATA[['<Super>Down']]]></default>
     </key>
     <key name="tile-move-left-layer-0" type="as">
-      <default><![CDATA[['<Super>Left', '<Ctrl>Left']]]></default>
+      <default><![CDATA[['<Super>Left']]]></default>
     </key>
     <key name="tile-move-right-layer-0" type="as">
-      <default><![CDATA[['<Super>Right', '<Ctrl>Right']]]></default>
+      <default><![CDATA[['<Super>Right']]]></default>
     </key>
     <key name="tile-move-up-layer-1" type="as">
       <default><![CDATA[['<Super><Ctrl>Up', '<Super><Alt>Up']]]></default>
