@@ -68,7 +68,7 @@ var Handler = class KeybindHandler {
         }
 
         // Special case: if moving down and the window is fullscreen, then come out of fullscreen
-        if (settingName === "tile-move-down" && window.is_fullscreen()) {
+        if (settingName.startsWith("tile-move-down-") && window.is_fullscreen()) {
             window.unmake_fullscreen();
             return;
         }
@@ -84,7 +84,7 @@ var Handler = class KeybindHandler {
             targetRect = nextTileSelector(currentTile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
-            if (settingName === "tile-move-up" && targetRect === null) {
+            if (settingName.startsWith("tile-move-up-") && targetRect === null) {
                 window.make_fullscreen();
                 return;
             }
