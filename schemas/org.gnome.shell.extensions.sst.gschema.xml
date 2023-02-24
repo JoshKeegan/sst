@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.sst" path="/org/gnome/shell/extensions/sst/">
+    <!-- Keyboard tiling keybinds -->
     <key name="tile-move-up-layer-0" type="as">
       <default><![CDATA[['<Super>Up']]]></default>
     </key>
@@ -36,6 +37,20 @@
     </key>
     <key name="tile-move-right-layer-2" type="as">
       <default><![CDATA[['<Super><Ctrl><Alt>Right']]]></default>
+    </key>
+    
+    <!-- Tile by default: whether Ctrl needs to be pressed to enable tiling by mouse movement -->
+    <key name="tile-by-default" type="b">
+      <default>true</default>
+    </key>
+
+    <!-- 
+      Invert tiling for windows: Regex on window title
+       - If tile-by-default is true, this makes these windows float by default
+       - If tile-by-default is false, this makes these windows tiled by default
+     -->
+    <key name="invert-tiling-for-window-title" type="s">
+      <default><![CDATA['^Zoom - Licensed Account$']]></default>
     </key>
   </schema>
 </schemalist>

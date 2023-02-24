@@ -14,6 +14,11 @@ const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
 
 var Handler = class MoveHandler {
     constructor() {
+        this._settings = {
+            tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),
+            regexInvertTilingForWindowTitle: new RegExp(MainExtension.settings.get_string("invert-tiling-for-window-title")),
+        };
+
         const isMoving = grabOp => [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
 
         this._displaySignals = [];
@@ -61,7 +66,7 @@ var Handler = class MoveHandler {
             this._posChangedId = 0;
         }
 
-        if (this._isMouseSnapKeyPressed()) {
+        if (this._isTilingModeActive(window)) {
             this._moveWindow(window, this._tileRect);
         }
 
@@ -72,7 +77,7 @@ var Handler = class MoveHandler {
     }
 
     _onMoving(grabOp, window) {
-        let active = this._isMouseSnapKeyPressed();
+        let active = this._isTilingModeActive(window);
 
         if (active) {
             // Split-tiling feature: if the split tile key is also pressed, use the second tile layer
@@ -88,7 +93,18 @@ var Handler = class MoveHandler {
         this._lastActive = active;
     }
 
-    _isMouseSnapKeyPressed() {
+    _isTilingModeActive(window) {
+        let active = this._settings.tileByDefault;
+        if (this._isMouseTilingKeyPressed()) {
+            active = !active;
+        }
+        if (this._settings.regexInvertTilingForWindowTitle.test(window.get_title())) {
+            active = !active;
+        }
+        return active;
+    }
+
+    _isMouseTilingKeyPressed() {
         // TODO: Make key configurable
         return this._isKeyPressed(Clutter.ModifierType.CONTROL_MASK);
     }
