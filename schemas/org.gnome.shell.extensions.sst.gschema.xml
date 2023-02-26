@@ -46,9 +46,9 @@
 
     <!-- 
       Invert tiling for windows: Regex on window title
-       - If tile-by-default is true, this makes these windows float by default
-       - If tile-by-default is false, this makes these windows tiled by default
-     -->
+      - If tile-by-default is true, this makes these windows float by default
+      - If tile-by-default is false, this makes these windows tiled by default
+    -->
     <key name="invert-tiling-for-window-title" type="s">
       <default><![CDATA['^Zoom - Licensed Account$']]></default>
     </key>
