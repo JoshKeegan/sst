@@ -8,6 +8,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 const WindowMover = Me.imports.windowMover.Mover;
+const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 
 const tileMoveKeys = function(){
     let keys = [];
@@ -78,7 +79,7 @@ var Handler = class KeybindHandler {
 
         // If the current window exactly matches a tile then move relative to that tile
         const wRect = window.get_frame_rect();
-        const currentTile = this._selectCurrentTile(tiles, wRect);
+        const currentTile = WindowTileMatcher.matchTile(tiles, wRect);
         let targetTile = null;
         if (currentTile !== null) {
             log(`Currently in tile, moving ${settingName} relative to it`);
@@ -115,26 +116,5 @@ var Handler = class KeybindHandler {
         else {
             log(`No target for movement ${settingName} found, not moving window`);
         }
-    }
-
-    /**
-     * Finds which tile the window is tiled to. Returns null if floating/not tiled
-     * @param tiles array of tiles to consider (should be all tiles in the current layer)
-     * @param wRect rectangle of the current window
-     */
-    _selectCurrentTile(tiles, wRect) {
-        log(`window x: ${wRect.x} y: ${wRect.y} w: ${wRect.width} h: ${wRect.height}`);
-        log(`tile x: ${tiles[0].x} y: ${tiles[0].y} w: ${tiles[0].width} h: ${tiles[0].height}`);
-
-        const FUZZY_DIMS_MULT = 0.98;
-        const tile = tiles.find(t =>
-            t.x === wRect.x &&
-            t.y === wRect.y &&
-            // Fuzzy match dimensions as some windows (e.g. terminal) slightly undersize themselves
-            t.width >= wRect.width && 
-            t.width * FUZZY_DIMS_MULT < wRect.width &&
-            t.height >= wRect.height &&
-            t.height * FUZZY_DIMS_MULT < wRect.height);
-        return tile ? tile : null;
     }
 };

@@ -184,7 +184,7 @@ var Tiles = class Tiles {
             }
 
             // Add the new child tiles (will always be two per loop) as children of this tile.
-            topTile.children.push(splitLayerTileAreas.slice(-2));
+            topTile.children.push(...splitLayerTileAreas.slice(splitLayerTileAreas.length - 2));
         }
         return splitLayerTileAreas;
     }
