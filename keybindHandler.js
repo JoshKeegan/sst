@@ -7,6 +7,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
+const WindowMover = Me.imports.windowMover.Mover;
 
 const tileMoveKeys = function(){
     let keys = [];
@@ -78,13 +79,13 @@ var Handler = class KeybindHandler {
         // If the current window exactly matches a tile then move relative to that tile
         const wRect = window.get_frame_rect();
         const currentTile = this._selectCurrentTile(tiles, wRect);
-        let targetRect = null;
+        let targetTile = null;
         if (currentTile !== null) {
             log(`Currently in tile, moving ${settingName} relative to it`);
-            targetRect = nextTileSelector(currentTile);
+            targetTile = nextTileSelector(currentTile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
-            if (settingName.startsWith("tile-move-up-") && targetRect === null) {
+            if (settingName.startsWith("tile-move-up-") && targetTile === null) {
                 window.make_fullscreen();
                 return;
             }
@@ -93,23 +94,23 @@ var Handler = class KeybindHandler {
         else {
             log(`Window is floating, searching for best tile ${settingName}`);
             // Find the closest tile in the direction we want to move in
-            targetRect = floatingTileSelector(tiles, wRect);
+            targetTile = floatingTileSelector(tiles, wRect);
 
             // If there is no tile in that direction, find the tile with the largest intersection area
-            if (targetRect === null) {
+            if (targetTile === null) {
                 log(`No tile in target direction ${settingName}, using tile with the largest intersection area`);
-                targetRect = TileRelationshipCalculator.findLargestIntersection(tiles, wRect);
+                targetTile = TileRelationshipCalculator.findLargestIntersection(tiles, wRect);
             }
 
             // If the window does not intersect a tile, find the closest one
-            if (targetRect === null) {
+            if (targetTile === null) {
                 log("Floating window intersects no tiles, using closest one");
-                targetRect = TileRelationshipCalculator.findClosest(tiles, wRect);
+                targetTile = TileRelationshipCalculator.findClosest(tiles, wRect);
             }
         }
 
-        if (targetRect !== null) {
-            this._moveWindow(window, targetRect);
+        if (targetTile !== null) {
+            WindowMover.move(window, targetTile);
         }
         else {
             log(`No target for movement ${settingName} found, not moving window`);
@@ -135,10 +136,5 @@ var Handler = class KeybindHandler {
             t.height >= wRect.height &&
             t.height * FUZZY_DIMS_MULT < wRect.height);
         return tile ? tile : null;
-    }
-
-    // TODO: DRY: moveHandler.js
-    _moveWindow(window, rect) {
-        window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
     }
 };

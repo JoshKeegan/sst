@@ -8,6 +8,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const Tile = Me.imports.tile.Tile;
 const Geometry = Me.imports.geometry.Geometry;
+const WindowMover = Me.imports.windowMover.Mover;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
@@ -41,8 +42,8 @@ var Handler = class MoveHandler {
         this._tileLayoutPreview = null;
         this._tilePreview = new windowManager.TilePreview();
 
-        // tile (extending metaRect), which the grabbed window will tile to
-        this._tileRect = null;
+        // Tile (extending Meta.Rectangle so can be passed to gnome-shell), which the grabbed window will tile to
+        this._tile = null;
     }
 
     destroy() {
@@ -67,13 +68,13 @@ var Handler = class MoveHandler {
         }
 
         if (this._isTilingModeActive(window)) {
-            this._moveWindow(window, this._tileRect);
+            WindowMover.move(window, this._tile);
         }
 
         this._closeTileLayoutPreview();
 
         this._tilePreview.close();
-        this._tileRect = null;
+        this._tile = null;
     }
 
     _onMoving(grabOp, window) {
@@ -136,30 +137,30 @@ var Handler = class MoveHandler {
         const monitorIdx = global.display.get_current_monitor();
         const tiles = MainExtension.tiles.getTiles(tileLayer, monitorIdx);
         const pointer = global.get_pointer();
-        const tRect = this._selectTileArea(tiles, { x: pointer[0], y: pointer[1] });
+        const tile = this._selectTile(tiles, { x: pointer[0], y: pointer[1] });
 
         // Draw the preview of the tile the window will move to
-        if (!tRect || !this._tileRect || !tRect.equal(this._tileRect)) {
+        if (!tile || !this._tile || !tile.equal(this._tile)) {
             // If we already have another tile selected (window is being dragged), we have to close the existing one before
             //  opening a new preview. Also delay showing the next preview, if we reuse the tile preview whilst the last one is 
             //  still animating away then it won't be shown.
-            if (this._tileRect !== null) {
+            if (this._tile !== null) {
                 this._tilePreview.close();
-                GLib.timeout_add(GLib.PRIORITY_HIGH, 250, () => this._tilePreview.open(window, tRect, monitorIdx));
+                GLib.timeout_add(GLib.PRIORITY_HIGH, 250, () => this._tilePreview.open(window, tile, monitorIdx));
             }
             else {
-                this._tilePreview.open(window, tRect, monitorIdx);
+                this._tilePreview.open(window, tile, monitorIdx);
             }
-            this._tileRect = tRect;
+            this._tile = tile;
         }
     }
 
     _undraw() {
         this._tilePreview.close();
-        this._tileRect = null;
+        this._tile = null;
     }
 
-    _selectTileArea(tiles, ptr) {
+    _selectTile(tiles, ptr) {
         const tile = tiles.find(t =>  Geometry.contains(t, ptr));
         
         // Combined tiling feature: if close to an edge of the tile, the target area 
@@ -197,10 +198,6 @@ var Handler = class MoveHandler {
         }
 
         return combinedTile;
-    }
-
-    _moveWindow(window, rect) {
-        window.move_resize_frame(false, rect.x, rect.y, rect.width, rect.height);
     }
 
     _openTileLayoutPreview(tileLayer) {
