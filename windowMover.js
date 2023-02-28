@@ -8,11 +8,10 @@ var Mover = class WindowMover {
     static move(window, tile) {
         // If the tile we're moving to has a parent that already has a window tiled to it,
         //  move that other window to the sibling tile.
-        if (tile.parent !== null) {
+        if (!tile.combined && tile.parent !== null) {
             const parentTileWindow = this._getTopWindowInTile(tile.parent);
             if(parentTileWindow !== null) {
-                const siblingTile = tile.parent.children.find(t => t !== tile);
-                this._move(parentTileWindow, siblingTile);
+                this._move(parentTileWindow, tile.sibling);
             }
         }        
 

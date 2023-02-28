@@ -16,7 +16,21 @@ var Tile = class Tile extends Meta.Rectangle {
             left: null,
             right: null,
         };
+        this.combined = false;
+
+        Object.defineProperty(this, "sibling", {
+            get() {
+                if (this.combined || this.parent === null) {
+                    return null;
+                }
+                return this.parent.children.find(t => t !== this);
+            }
+        });
     }
+
+    // Note: methods on the class can't be defined here when extending Meta.Rectangle
+    //  as they can't be accessed. I'm not sure if this is a gnome shell extensions limitation
+    //  or a limitation of some old version of ES, but you can define them on "this" in the ctor.
 
     static combine(a, b) {
         let xStart = Math.min(a.x, b.x);
@@ -39,6 +53,7 @@ var Tile = class Tile extends Meta.Rectangle {
             height: yEnd - yStart
         });
         tile.children = [a, b];
+        tile.combined = true;
         return tile;
     }
 }
