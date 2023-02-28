@@ -9,6 +9,7 @@ const MainExtension = Me.imports.extension;
 const Tile = Me.imports.tile.Tile;
 const Geometry = Me.imports.geometry.Geometry;
 const WindowMover = Me.imports.windowMover.Mover;
+const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
@@ -57,6 +58,11 @@ var Handler = class MoveHandler {
 
         this._posChangedId = window.connect("position-changed",
             this._onMoving.bind(this, grabOp, window));
+        
+        // Behaviour on leaving a tile
+        const wRect = window.get_frame_rect();
+        const leavingTile = WindowTileMatcher.matchTile(MainExtension.tiles.all, wRect);
+        WindowMover.leave(window, leavingTile);
     }
 
     _onMoveFinished(window) {

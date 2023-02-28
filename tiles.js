@@ -29,6 +29,11 @@ var Tiles = class Tiles {
         return this._previews[tileLayer];
     }
 
+    // TODO: Needn't be calculated at runtime
+    get all() {
+        return [].concat(...this._allTiles);
+    }
+
     destroy() {
         Main.layoutManager.disconnect(this._layoutSignalId);
         this._destroyPreviews();

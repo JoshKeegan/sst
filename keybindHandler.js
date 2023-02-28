@@ -87,6 +87,9 @@ var Handler = class KeybindHandler {
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
             if (settingName.startsWith("tile-move-up-") && targetTile === null) {
+                // Behaviour on leaving a tile
+                WindowMover.leave(window, currentTile);
+
                 window.make_fullscreen();
                 return;
             }
@@ -111,6 +114,10 @@ var Handler = class KeybindHandler {
         }
 
         if (targetTile !== null) {
+            // Behaviour on leaving a tile
+            const leavingTile = currentTile !== null ? currentTile : WindowTileMatcher.matchTile(MainExtension.tiles.all, window.get_frame_rect());
+            WindowMover.leave(window, leavingTile);
+
             WindowMover.move(window, targetTile);
         }
         else {

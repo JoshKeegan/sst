@@ -18,13 +18,31 @@ var Mover = class WindowMover {
         this._move(window, tile);
     }
 
-    static _getTopWindowInTile(tile) {
+    static leave(window, tile) {
+        // If the window was floating, do nothing
+        if (tile === null) {
+            return;
+        }
+
+        // If the tile we're leaving has no other window that will be on top of this tile
+        //  once we leave it, and there's a sibling tile with a window in it, then that sibling's
+        //  window can be moved to the parent.
+        if (tile.parent !== null && this._getTopWindowInTile(tile, window) === null) {
+            const siblingWindow = this._getTopWindowInTile(tile.sibling);
+            if (siblingWindow !== null) {
+                this.move(siblingWindow, tile.parent);
+            }
+        }
+    }
+
+    static _getTopWindowInTile(tile, excludeWindow = undefined) {
         // Note: In addition to .minimized there is .showing_on_its_workspace()
         //  I don't currently see a reason for the additional checks in this use-case,
         //  but if bugs pop up here, it's worth re-reading
         const window = this._getSortedWindows().find(
-            w => !w.minimized && 
-            WindowTileMatcher.isWindowInTile(tile, w.get_frame_rect()));
+            w => w !== excludeWindow &&
+                !w.minimized && 
+                WindowTileMatcher.isWindowInTile(tile, w.get_frame_rect()));
         return window ? window : null;
     }
 
