@@ -147,16 +147,7 @@ var Handler = class MouseHandler {
 
         // Draw the preview of the tile the window will move to
         if (!tile || !this._tile || !tile.equal(this._tile)) {
-            // If we already have another tile selected (window is being dragged), we have to close the existing one before
-            //  opening a new preview. Also delay showing the next preview, if we reuse the tile preview whilst the last one is 
-            //  still animating away then it won't be shown.
-            if (this._tile !== null) {
-                this._tilePreview.close();
-                GLib.timeout_add(GLib.PRIORITY_HIGH, 250, () => this._tilePreview.open(window, tile, monitorIdx));
-            }
-            else {
-                this._tilePreview.open(window, tile, monitorIdx);
-            }
+            this._tilePreview.open(window, tile, monitorIdx);
             this._tile = tile;
         }
     }
