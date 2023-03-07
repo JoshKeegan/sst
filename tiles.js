@@ -67,6 +67,13 @@ var Tiles = class Tiles {
         this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
 
         this._previews = this._allTiles.map(tiles => new TileLayoutPreview(tiles));
+
+        // Log tiles for debugging
+        log("Generated Tiles:");
+        for(let i = 0; i < this._allTiles.length; i++) {
+            log(`Layer ${i}`);
+            this._allTiles[i].forEach(t => log(t));
+        }
     }
 
     _getMonitorWorkAreas() {
@@ -143,8 +150,6 @@ var Tiles = class Tiles {
         const splitLayerTileAreas = [];
         for (let i = 0; i < topLayerTileAreas.length; i++) {
             const topTile = topLayerTileAreas[i];
-
-            log("w: " + topTile.width + "h: " + topTile.height);
 
             // Split each tile in two along its longest axis.
             //  Vertical split

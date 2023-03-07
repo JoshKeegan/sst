@@ -26,6 +26,18 @@ var Tile = class Tile extends Meta.Rectangle {
                 return this.parent.children.find(t => t !== this);
             }
         });
+
+        this.toString = function () {
+            return `x:${this.x} y:${this.y} width:${this.width} height:${this.height} ` + 
+                `monitor:${this.monitorIdx} ` + 
+                `${this.parent !== null ? "has" : "no"} parent ` + 
+                `${this.children.length} children ` +
+                `${this.relationships.up !== null ? "has" : "no"} up ` +
+                `${this.relationships.down !== null ? "has" : "no"} down ` +
+                `${this.relationships.left !== null ? "has" : "no"} left ` +
+                `${this.relationships.right !== null ? "has" : "no"} right ` +
+                `${this.combined ? "is" : "not"} combined`;
+        }
     }
 
     // Note: methods on the class can't be defined here when extending Meta.Rectangle
