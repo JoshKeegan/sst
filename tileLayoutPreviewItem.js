@@ -6,6 +6,10 @@ const {Clutter, GObject, St} = imports.gi;
 const ANIMATION_TIME = 250;
 
 var Item = GObject.registerClass(
+    /**
+     * Displays a preview of a single tile by drawing its border on-screen. 
+     * Used as part of the wider TileLayoutPreview to preview all tiles in a layer. 
+     */
     class TileLayoutPreviewItem extends St.Widget {
         _init(tile) {
             super._init({
