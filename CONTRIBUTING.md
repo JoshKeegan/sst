@@ -8,8 +8,8 @@ To access gnome-shell logs (where any `log` calls in the extension will be logge
 
 To enable/disable the extension, run:
 ```bash
-gnome-extensions enable sst@joshkeegan.co.uk
-gnome-extensions disable sst@joshkeegan.co.uk
+make enable
+make disable
 ```
 
 `Alt+F2 > r` after each change to restart gnome shell (enable/disable will not pick up code changes).

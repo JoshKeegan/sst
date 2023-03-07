@@ -20,3 +20,11 @@ else ifeq ($(XDG_SESSION_TYPE),wayland)
 else
 	$(error Unrecognised XDG_SESSION_TYPE)
 endif
+
+.PHONY: enable
+enable:
+	gnome-extensions enable sst@joshkeegan.co.uk
+
+.PHONY: disable
+disable:
+	gnome-extensions disable sst@joshkeegan.co.uk
