@@ -14,7 +14,7 @@ const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
 
-var Handler = class MoveHandler {
+var Handler = class MouseHandler {
     constructor() {
         this._settings = {
             tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),

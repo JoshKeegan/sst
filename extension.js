@@ -3,7 +3,7 @@
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const Tiles = Me.imports.tiles;
-const MoveHandler = Me.imports.moveHandler.Handler;
+const MouseHandler = Me.imports.mouseHandler.Handler;
 const KeybindHandler = Me.imports.keybindHandler.Handler;
     
 function enable() {
@@ -24,7 +24,7 @@ function enable() {
     this._gnomeMutterKeybindSettings.set_strv("toggle-tiled-right", []);
 
     this.tiles = new Tiles.Tiles();
-    this.windowMoveHandler = new MoveHandler();
+    this.mouseHandler = new MouseHandler();
     this.keybindHandler = new KeybindHandler();
 }
 
@@ -33,8 +33,8 @@ function disable() {
 
     this.keybindHandler.destroy();
     this.keybindHandler = null;
-    this.windowMoveHandler.destroy();
-    this.windowMoveHandler = null;
+    this.mouseHandler.destroy();
+    this.mouseHandler = null;
     this.tiles.destroy();
     this.tiles = null;
 
