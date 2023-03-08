@@ -2,7 +2,7 @@
 
 const ExtensionUtils = imports.misc.extensionUtils;
 
-var Manager = class GnomeKeybindSettingsManager {
+var Manager = class GnomeSettingsManager {
     constructor(sstSettings) {
         this._resetFns = [];
 
