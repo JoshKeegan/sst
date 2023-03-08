@@ -3,13 +3,8 @@
 const ExtensionUtils = imports.misc.extensionUtils;
 
 var Manager = class GnomeKeybindSettingsManager {
-    constructor() {
-        // TODO: Don't disable if there's no keybind collision.
-        // TODO: Reset keybinds back to what they were beforehand, not their defaults (user may have
-        //  customised them).
-        // Ideally this should just remove the colliding keybind & re-add it when the extension is 
-        //  disabled. e.g. "unmaximize" defaults to ['<Super>Down', '<Alt>F5'] and there's no collision
-        //  on '<Alt>F5' so it could remain.
+    constructor(sstSettings) {
+        this._resetFns = [];
 
         // disable native tiling
         this._gnomeMutterSettings = ExtensionUtils.getSettings("org.gnome.mutter");
@@ -23,11 +18,16 @@ var Manager = class GnomeKeybindSettingsManager {
         this._gnomeMutterKeybindSettings.set_strv("toggle-tiled-left", []);
         this._gnomeMutterKeybindSettings.set_strv("toggle-tiled-right", []);
 
-        // disable native fullscreen as we replace this with our own fullscreen call if moving a tiled 
-        //  window up and there's no tile above it
-        this._gnomeKeybindSettings = ExtensionUtils.getSettings("org.gnome.desktop.wm.keybindings");
-        this._gnomeKeybindSettings.set_strv("maximize", []);
-        this._gnomeKeybindSettings.set_strv("unmaximize", []);
+        // Native fullscreen keybinds can collide with tile layer 0 up & down, make our keybinds take
+        //  precedence since you can also make windows fullscreen via ours if there is no tile above the window.
+        // Retain keybinds that we don't collide with though (e.g. unmaximize also has <Alt>F5 as a default that we can keep)
+        const gnomeKeybinds = ExtensionUtils.getSettings("org.gnome.desktop.wm.keybindings");
+        this._resetFns.push(
+            this.removeValueFromSettingsArray(
+                gnomeKeybinds, "maximize", sstSettings.get_strv("tile-move-up-layer-0")));
+        this._resetFns.push(
+            this.removeValueFromSettingsArray(
+                gnomeKeybinds, "unmaximize", sstSettings.get_strv("tile-move-down-layer-0")));
     }
 
     destroy() {
@@ -39,8 +39,26 @@ var Manager = class GnomeKeybindSettingsManager {
         this._gnomeMutterKeybindSettings.reset("toggle-tiled-left");
         this._gnomeMutterKeybindSettings.reset("toggle-tiled-right");
 
-        // re-enable native fullscreen keybinds
-        this._gnomeKeybindSettings.reset("maximize");
-        this._gnomeKeybindSettings.reset("unmaximize");
+        this._resetFns.forEach(f => f());
+        this._resetFns = null;
+    }
+
+    /**
+     * 
+     * @param {Gio.Settings} settings - a settings object loaded for a schema 
+     * @param string key - key within the settings schema to update (must correlate with a string array type strv)
+     * @param string[] values - values within the array to remove
+     * @returns function to return key back to its original state
+     */
+    removeValueFromSettingsArray(settings, key, values) {
+        const orig = settings.get_strv(key);
+        const removed = orig.filter(s => !values.includes(s));
+        log(`Removing '${values}' from ${key} setting. Original '${orig}', now '${removed}'`);
+        settings.set_strv(key, removed);
+
+        return function() {
+            log(`Returning setting ${key} back to its original value '${orig}'`);
+            settings.set_strv(key, orig);
+        }
     }
 }

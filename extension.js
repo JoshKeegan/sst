@@ -12,7 +12,7 @@ function enable() {
 
     this.settings = ExtensionUtils.getSettings("org.gnome.shell.extensions.sst");
 
-    this.gnomeKeybindSettingsManager = new GnomeKeybindSettingsManager();
+    this.gnomeKeybindSettingsManager = new GnomeKeybindSettingsManager(this.settings);
     this.tiles = new Tiles.Tiles();
     this.mouseHandler = new MouseHandler();
     this.keybindHandler = new KeybindHandler();
