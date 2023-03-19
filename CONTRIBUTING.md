@@ -1,8 +1,10 @@
 # Contributing
 
-Checkout the repo to `~/.local/share/gnome-shell/extensions` so that code changes are reflected locally without an installation step.
+Checkout the repo to `~/.local/share/gnome-shell/extensions/sst@joshkeegan.co.uk` so that code changes are reflected locally without an installation step.
 
 Run `make settings-schema-compile` to compile the settings schema. This is needed one-off initially, and then only needs to be re-run after schema changes.
+
+`Alt+F2 > r` to restart gnome shell so it picks up the new extension.
 
 To access gnome-shell logs (where any `log` calls in the extension will be logged to) run `make gnome-shell-logs`.
 
