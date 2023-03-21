@@ -109,12 +109,12 @@ var Tiles = class Tiles {
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
 
-            tileAreas[i] = new Tile(monitorIdx, null, {
+            tileAreas[i] = new Tile(monitorIdx, null, new Meta.Rectangle({
                 x: monitorWorkArea.x + (monitorWorkArea.width * relArea.x),
                 y: monitorWorkArea.y + (monitorWorkArea.height * relArea.y),
                 width: monitorWorkArea.width * relArea.width,
                 height: monitorWorkArea.height * relArea.height
-            });
+            }));
         }
         return tileAreas;
     }
@@ -158,19 +158,19 @@ var Tiles = class Tiles {
                 const h = topTile.height / 2;
 
                 // Top
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, {
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y,
                     width: w,
                     height: h,
-                }));
+                })));
                 // Bottom
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, {
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y + h,
                     width: w,
                     height: h,
-                }));
+                })));
             }
             // Horizontal split (including if tile is exactly square)
             else {
@@ -178,19 +178,19 @@ var Tiles = class Tiles {
                 const h = topTile.height;
 
                 // Left
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, {
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y,
                     width: w,
                     height: h,
-                }));
+                })));
                 // Right
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, {
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
                     x: topTile.x + w,
                     y: topTile.y,
                     width: w,
                     height: h,
-                }));
+                })));
             }
 
             // Add the new child tiles (will always be two per loop) as children of this tile.

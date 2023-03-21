@@ -43,7 +43,7 @@ var Handler = class MouseHandler {
         this._tileLayoutPreview = null;
         this._tilePreview = new windowManager.TilePreview();
 
-        // Tile (extending Meta.Rectangle so can be passed to gnome-shell), which the grabbed window will tile to
+        // Tile (composed of rect:Meta.Rectangle which can be passed to gnome-shell), which the grabbed window will tile to
         this._tile = null;
     }
 
@@ -146,8 +146,8 @@ var Handler = class MouseHandler {
         const tile = this._selectTile(tiles, { x: pointer[0], y: pointer[1] });
 
         // Draw the preview of the tile the window will move to
-        if (!tile || !this._tile || !tile.equal(this._tile)) {
-            this._tilePreview.open(window, tile, monitorIdx);
+        if (!tile || !this._tile || !tile.rect.equal(this._tile.rect)) {
+            this._tilePreview.open(window, tile.rect, monitorIdx);
             this._tile = tile;
         }
     }

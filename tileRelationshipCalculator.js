@@ -100,7 +100,7 @@ var Calculator = class TileRelationshipCalculator {
         let iArea = 0;
         let iTile = null;
         for (let i = 0; i < tiles.length; i++) {
-            const [intersect, iRect] = rect.intersect(tiles[i]);
+            const [intersect, iRect] = rect.intersect(tiles[i].rect);
             if (intersect) {
                 const a = iRect.width * iRect.height;
                 if (a > iArea) {
