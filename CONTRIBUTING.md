@@ -24,10 +24,10 @@ Normal dev workflow will be:
  - Enable extension
 
 ## API
-Gnome extensions are built on top of the gnome-shell JS code. [Very high level docs](https://wiki.gnome.org/Projects/GnomeShell/Extensions#Creating_Extensions) exist, but the API itself isn't. You can however read source code:
+Gnome extensions are built on top of the gnome-shell JS code. There is the [getting started docs](https://wiki.gnome.org/Projects/GnomeShell/Extensions#Creating_Extensions), [GJS guide](https://gjs.guide/) and [GJS API Docs](https://gjs-docs.gnome.org/). You can also read source code for:
  - [gnome-shell](https://gitlab.gnome.org/GNOME/gnome-shell/) - JS code that extensions monkey-patch to add or modify behaviour.
  - [mutter](https://gitlab.gnome.org/GNOME/mutter) - underlying C code for the mutter window manager (current Gnome default) which gnome-shell sits on-top of.
- - [Tiling-Assistant](https://github.com/Leleat/Tiling-Assistant) - another gnome-shell extension for tiling, with different use-cases. This, and other compatibly licensed extensions are a good source of examples instead of docs.
+ - [Tiling-Assistant](https://github.com/Leleat/Tiling-Assistant) - another gnome-shell extension for tiling, with different use-cases. This, and other compatibly licensed extensions are a good source of examples.
 
 # Unit Tests
 Gnome extensions aren't natively unit testable. It could still be done but I have decided that right now for this project it is not worth the effort since the whole extension needs manually testing after changes anyway. Should I ever *really* need to unit test something it can be achieved by making the SUT global (not a great pattern to follow for building a test suite), or with bundling, e.g. as has been done in 
