@@ -4,6 +4,7 @@
     "uuid": "sst@joshkeegan.co.uk",
     "shell-version": [
         "3.36",
-        "42"
+        "42",
+        "43"
     ]
 }

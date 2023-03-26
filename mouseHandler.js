@@ -131,8 +131,7 @@ var Handler = class MouseHandler {
     }
 
     _isKeyPressed(modMask) {
-        const event = Clutter.get_current_event();
-        const modifiers = event ? event.get_state() : 0;
+        const modifiers = global.get_pointer()[2];
         return (modifiers & modMask) !== 0;
     }
 

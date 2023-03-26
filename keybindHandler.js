@@ -50,7 +50,7 @@ var Handler = class KeybindHandler {
                     settingName, 
                     handlers.nextTileSelector, 
                     handlers.floatingTileSelector, 
-                    handlers.tileLayer))
+                    handlers.tileLayer));
         }
     }
 
