@@ -87,10 +87,7 @@ var Handler = class MouseHandler {
         let active = this._isTilingModeActive(window);
 
         if (active) {
-            // Split-tiling feature: if the split tile key is also pressed, use the second tile layer
-            //  which splits each of the top-level tiles into smaller ones.
-            const tileLayer = this._isSplitTile1KeyPressed() ? (this._isSplitTile2KeyPressed() ? 2 : 1) : 0;
-            this._draw(grabOp, window, tileLayer);
+            this._draw(grabOp, window, this._getTilingLayer());
         }
         else if (this._lastActive) {
             this._closeTileLayoutPreview();
@@ -114,6 +111,17 @@ var Handler = class MouseHandler {
     _isMouseTilingKeyPressed() {
         // TODO: Make key configurable
         return this._isKeyPressed(Clutter.ModifierType.CONTROL_MASK);
+    }
+
+    _getTilingLayer() {
+        let layer = 0;
+        if (this._isSplitTile1KeyPressed()) {
+            layer++;
+        }
+        if (this._isSplitTile2KeyPressed()) {
+            layer++;
+        }
+        return layer;
     }
 
     _isSplitTile1KeyPressed() {
