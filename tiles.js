@@ -17,6 +17,8 @@ var Tiles = class Tiles {
         this._refreshTiles();
     }
 
+    get numLayers() { return this._tilesByMonitor.length; }
+
     getTiles(tileLayer, monitorIdx) {
         return this._tilesByMonitor[tileLayer][monitorIdx];
     }

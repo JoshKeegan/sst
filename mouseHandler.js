@@ -14,6 +14,14 @@ const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
 
+// Use values rather than constants e.g. CLUTTER_MOD5_MASK as they aren't all defined
+// in older versions.
+const TILING_LAYER_KEY_MASKS = [
+    1 << 3, // Left Alt
+    1 << 7, // Right Alt
+    1 << 6, // Super (left or right)
+];
+
 var Handler = class MouseHandler {
     constructor() {
         this._settings = {
@@ -115,27 +123,12 @@ var Handler = class MouseHandler {
 
     _getTilingLayer() {
         let layer = 0;
-        if (this._isSplitTile1KeyPressed()) {
-            layer++;
-        }
-        if (this._isSplitTile2KeyPressed()) {
-            layer++;
+        for (let i = 0; i < TILING_LAYER_KEY_MASKS.length && layer < MainExtension.tiles.numLayers - 1; i++) {
+            if (this._isKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
+                layer++;
+            }
         }
         return layer;
-    }
-
-    _isSplitTile1KeyPressed() {
-        // See CLUTTER_MOD1_MASK & CLUTTER_MOD5_MASK in Mutter enum ClutterModifierType
-        // Seems like they aren't defined in older versions.
-        const leftAlt = 1 << 3;
-        const rightAlt = 1 << 7;
-        return this._isKeyPressed(leftAlt | rightAlt);
-    }
-
-    _isSplitTile2KeyPressed() {
-        // See CLUTTER_MOD1_MASK & CLUTTER_MOD5_MASK in Mutter enum ClutterModifierType
-        // Seems like they aren't defined in older versions.
-        return this._isKeyPressed(1 << 6); // Super key (left or right)
     }
 
     _isKeyPressed(modMask) {
