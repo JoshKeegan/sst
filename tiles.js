@@ -13,7 +13,7 @@ const TileLayoutPreview = Me.imports.tileLayoutPreview.Preview;
 var Tiles = class Tiles {
     constructor() {
         this._previews = null;
-        this._layoutSignalId = Main.layoutManager.connect('monitors-changed', this._refreshTiles.bind(this));
+        this._layoutSignalId = global.display.connect('workareas-changed', this._refreshTiles.bind(this));
         this._refreshTiles();
     }
 
@@ -37,7 +37,7 @@ var Tiles = class Tiles {
     }
 
     destroy() {
-        Main.layoutManager.disconnect(this._layoutSignalId);
+        global.display.disconnect(this._layoutSignalId);
         this._destroyPreviews();
     }
 
