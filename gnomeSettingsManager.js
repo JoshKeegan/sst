@@ -90,6 +90,10 @@ var Manager = class GnomeSettingsManager {
      * @returns function to return key back to its original state
      */
     settingsRemoveFromStrv(settings, key, values) {
+        if (!settings.settings_schema.has_key(key)) {
+            log(`${settings.settings_schema.get_id()} does not contain key ${key}, skipping updating it`);
+            return () => {  };
+        }
         const orig = settings.get_strv(key);
         const removed = orig.filter(s => !values.includes(s));
         log(`Removing '${values}' from ${key} setting. Original '${orig}', now '${removed}'`);
