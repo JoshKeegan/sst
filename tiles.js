@@ -111,12 +111,23 @@ var Tiles = class Tiles {
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
 
-            tileAreas[i] = new Tile(monitorIdx, null, new Meta.Rectangle({
+            const rect = new Meta.Rectangle({
                 x: monitorWorkArea.x + (monitorWorkArea.width * relArea.x),
                 y: monitorWorkArea.y + (monitorWorkArea.height * relArea.y),
                 width: monitorWorkArea.width * relArea.width,
                 height: monitorWorkArea.height * relArea.height
-            }));
+            });
+
+            // fix accumalative rounding (always floor) errors by stretching a calculated tile
+            // if it would otherwise be only 1px away from the edge
+            if (rect.x + rect.width === monitorWorkArea.width + monitorWorkArea.x - 1) {
+                rect.width++;
+            }
+            if (rect.y + rect.height === monitorWorkArea.height + monitorWorkArea.y - 1) {
+                rect.height++;
+            }
+
+            tileAreas[i] = new Tile(monitorIdx, null, rect);
         }
         return tileAreas;
     }
