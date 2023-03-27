@@ -2,6 +2,12 @@
 
 const ExtensionUtils = imports.misc.extensionUtils;
 
+/**
+ * GnomeSettingsManager is in charge of changing Gnome default keybinds that we want to replace with our own.
+ * This is generally because the functionality is replaced (e.g. native edge tiling).
+ * When developing, if you find a collision, you can find the config with gsettings, e.g.:
+ *  # gsettings list-recursively | grep "<Super><Alt>Left"
+ */
 var Manager = class GnomeSettingsManager {
     constructor(sstSettings) {
         this._resetFns = [];
@@ -35,6 +41,25 @@ var Manager = class GnomeSettingsManager {
             this._resetFns.push(
                 this.settingsRemoveFromStrv(
                     gnomeKeybinds, "unmaximize", sstSettings.get_strv("tile-move-down-layer-0")));
+            
+            // Native tiling switch workspace has multiple keybinds on newer Gnome versions, we want <Super><Alt>Left/Right
+            this._resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeKeybinds, "switch-to-workspace-left", sstSettings.get_strv("tile-move-left-layer-1")));
+            this._resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeKeybinds, "switch-to-workspace-right", sstSettings.get_strv("tile-move-right-layer-1")));
+            
+            // Native shift overview up/down that has been added in newer Gnome versions collides. We want <Super><Alt>Up/Down
+            // Not sure why you'd want a keyboard shortcut for this anyway as you can type at the top level... Shifting the overview
+            // up seems like mouse behaviour to me because it gives you the grid of installed applications to select from...
+            const gnomeShellKeybinds = ExtensionUtils.getSettings("org.gnome.shell.keybindings");
+            this._resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeShellKeybinds, "shift-overview-up", sstSettings.get_strv("tile-move-up-layer-1")));
+            this._resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeShellKeybinds, "shift-overview-down", sstSettings.get_strv("tile-move-down-layer-1")));
         }
         catch (e) {
             logError(e, "Failed to set a GNOME setting, resetting any that have already been set");
