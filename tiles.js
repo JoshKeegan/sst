@@ -139,7 +139,7 @@ var Tiles = class Tiles {
 
         // TODO: Make configurable. These are just my preferences for current 32:9 desktop & 16:9 laptop displays.
 
-        // Super ultra-wide (~32:9) & ultra-wide (~21:9) use preiority columns (centre half of screen, left and right quarter) 
+        // Super ultra-wide (~32:9) & ultra-wide (~21:9) use priority columns (centre half of screen, left and right quarter) 
         //  with a horizontal split on the left col.
         if (aspectRatio > 2) {
             return [
@@ -149,12 +149,14 @@ var Tiles = class Tiles {
                 { x: 0.75, y: 0, width: 0.25, height: 1 },
             ];
         }
-        // Otherwise it'll be my laptop screen, tile horizontally and then also tile the right half vertically.
+        // Otherwise it'll be my laptop screen, split into two columns.
+        // Having smaller tiles in the top-level isn't preferably because it's so easy to sub-tile.
+        // Fullscreen is easily achieved from either column with <Super>Up, which is nice because it's exclusive fullscreen
+        //  with everything else (title bar, app dock) out of view. This is what I want for fullscreen on a small display. 
         else {
             return [
                 { x: 0, y: 0, width: 0.5, height: 1 },
-                { x: 0.5, y: 0, width: 0.5, height: 0.5 },
-                { x: 0.5, y: 0.5, width: 0.5, height: 0.5},
+                { x: 0.5, y: 0, width: 0.5, height: 1 },
             ];
         }
     }
