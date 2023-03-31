@@ -53,7 +53,7 @@
       Then clicking on the window
     -->
     <key name="invert-tiling-for-window-title" type="s">
-      <default><![CDATA['^(Zoom - Licensed Account|JetBrains Toolbox|Calculator)$']]></default>
+      <default><![CDATA['^(Zoom - Licensed Account|JetBrains Toolbox|Calculator|Settings|Preferences(\\s.+)|About(\\s.+)?|Steam Sign In|Steam - .+)$']]></default>
     </key>
   </schema>
 </schemalist>

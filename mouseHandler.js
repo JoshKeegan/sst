@@ -129,11 +129,15 @@ var Handler = class MouseHandler {
             Utility - Attached to parent, but still seems sensible to tile. e.g. Firefox picture-in-picture
         */
         const type = window.get_window_type();
-        let tileable = type === Meta.WindowType.NORMAL || type === Meta.WindowType.UTILITY;
-        if (this._settings.regexInvertTilingForWindowTitle.test(window.get_title())) {
-            tileable = !tileable;
+        if (type === Meta.WindowType.NORMAL || 
+            type === Meta.WindowType.UTILITY) {
+            return !this._settings.regexInvertTilingForWindowTitle.test(window.get_title());
         }
-        return tileable;
+        // If the window type is not tileable, don't apply the regex inversion, as it can make a non-tileable "About" 
+        //  window tile again by matching both checks.
+        // We don't want the inversion for these windows anyway, it mainly exists to catch "normal" windows that are actually
+        //  pop-ups.
+        return false;
     }
 
     _isMouseTilingKeyPressed() {
