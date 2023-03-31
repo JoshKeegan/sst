@@ -24,11 +24,6 @@ const TILING_LAYER_KEY_MASKS = [
 
 var Handler = class MouseHandler {
     constructor() {
-        this._settings = {
-            tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),
-            regexInvertTilingForWindowTitle: new RegExp(MainExtension.settings.get_string("invert-tiling-for-window-title")),
-        };
-
         const isMoving = grabOp => [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
 
         this._displaySignals = [];
@@ -81,7 +76,7 @@ var Handler = class MouseHandler {
             this._posChangedId = 0;
         }
 
-        if (this._isTilingModeActive(window)) {
+        if (MainExtension.windowLifecycle.isTilingModeActive(window)) {
             WindowMover.move(window, this._tile);
         }
 
@@ -92,7 +87,7 @@ var Handler = class MouseHandler {
     }
 
     _onMoving(grabOp, window) {
-        let active = this._isTilingModeActive(window);
+        let active = MainExtension.windowLifecycle.isTilingModeActive(window);
 
         if (active) {
             this._draw(grabOp, window, this._getTilingLayer());
@@ -105,59 +100,14 @@ var Handler = class MouseHandler {
         this._lastActive = active;
     }
 
-    _isTilingModeActive(window) {
-        let active = this._settings.tileByDefault && this._windowSuitableForTiling(window);
-        if (this._isMouseTilingKeyPressed()) {
-            active = !active;
-        }
-        return active;
-    }
-    
-    /**
-     * Whether the specified window is suitable for tiling.
-     * Considers window type (not a popup, modal, dialog etc...) and the invert tiling config.
-     * @param Meta.Window window 
-     * @returns bool
-     */
-    _windowSuitableForTiling(window) {
-        /*
-            https://gjs-docs.gnome.org/meta12~12-windowtype/
-            https://wiki.gnome.org/Projects/Metacity/WindowTypes
-
-            Tile:
-            Normal - Most app windows
-            Utility - Attached to parent, but still seems sensible to tile. e.g. Firefox picture-in-picture
-        */
-        const type = window.get_window_type();
-        if (type === Meta.WindowType.NORMAL || 
-            type === Meta.WindowType.UTILITY) {
-            return !this._settings.regexInvertTilingForWindowTitle.test(window.get_title());
-        }
-        // If the window type is not tileable, don't apply the regex inversion, as it can make a non-tileable "About" 
-        //  window tile again by matching both checks.
-        // We don't want the inversion for these windows anyway, it mainly exists to catch "normal" windows that are actually
-        //  pop-ups.
-        return false;
-    }
-
-    _isMouseTilingKeyPressed() {
-        // TODO: Make key configurable
-        return this._isKeyPressed(Clutter.ModifierType.CONTROL_MASK);
-    }
-
     _getTilingLayer() {
         let layer = 0;
         for (let i = 0; i < TILING_LAYER_KEY_MASKS.length && layer < MainExtension.tiles.numLayers - 1; i++) {
-            if (this._isKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
+            if (MainExtension.keybindHandler.isModKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
                 layer++;
             }
         }
         return layer;
-    }
-
-    _isKeyPressed(modMask) {
-        const modifiers = global.get_pointer()[2];
-        return (modifiers & modMask) !== 0;
     }
 
     _draw(grabOp, window, tileLayer) {

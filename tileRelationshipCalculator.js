@@ -114,14 +114,43 @@ var Calculator = class TileRelationshipCalculator {
 
     /**
      * Finds the tile closest to the supplied rectangle, in any direction. 
-     * If overlapping, will find the one with the shortest distance between corners.
+     * If the center of the window is within a tile, returns that.
+     * Else finds the closest tile.
+     * If overlapping multiple tiles, will find the one with the shortest distance between corners.
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
      * @param {Meta.Rectangle} rect rectangle to find tile relative to
      * @returns closest tile
      */
     static findClosest(tiles, rect) {
-        let dBest = Infinity;
+        return this._findCenterWithin(tiles, rect) || tiles._findClosestCorners(tiles, rect);
+    }
+
+    /**
+     * Finds the tile that contains the center of the supplied rectangle.
+     * @param tiles array of tiles to consider (should be all tiles in the current layer)
+     * @param {Meta.Rectangle} rect rectangle to find tile relative to
+     * @returns tile containing the rect center
+     */
+    static _findCenterWithin(tiles, rect) {
+        const center = Geometry.center(rect);
+        for (let i = 0; i < tiles.length; i++) {
+            if (Geometry.contains(tiles[i], center)) {
+                return tiles[i];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds the tile whose corners are closest to the supplied rectangle, in any direction. 
+     * If overlapping multiple tiles, will find the one with the shortest distance between corners.
+     * @param tiles array of tiles to consider (should be all tiles in the current layer)
+     * @param {Meta.Rectangle} rect rectangle to find tile relative to
+     * @returns closest tile
+     */
+    static _findClosestCorners(tiles, rect) {
         let tBest = null;
+        let dBest = Infinity;
         for (let i = 0; i < tiles.length; i++) {
             const d = Geometry.euclideanDistanceBetweenClosestCorners(tiles[i], rect);
             if (d < dBest) {

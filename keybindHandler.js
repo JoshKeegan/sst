@@ -60,6 +60,11 @@ var Handler = class KeybindHandler {
         }
     }
 
+    isModKeyPressed(modMask) {
+        const modifiers = global.get_pointer()[2];
+        return (modifiers & modMask) !== 0;
+    }
+
     _onTileMoveKeyPressed(settingName, nextTileSelector, floatingTileSelector, tileLayer) {
         log("Pressed " + settingName);
 

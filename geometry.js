@@ -43,6 +43,17 @@ var Geometry = class Geometry {
             rect.y <= point.y &&
             rect.y + rect.height > point.y;
     }
+
+    /**
+     * Finds the center of a rectangle
+     * @param {x, y, width, height} rect 
+     */
+    static center (rect) {
+        return {
+            x: rect.x + Math.floor(rect.width / 2),
+            y: rect.y + Math.floor(rect.height / 2),
+        };
+    }
     
     static _euclideanDistanceBeteenClosestPoints(a, b) {
         let dBest = Infinity;
