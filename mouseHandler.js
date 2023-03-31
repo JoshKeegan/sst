@@ -106,18 +106,34 @@ var Handler = class MouseHandler {
     }
 
     _isTilingModeActive(window) {
-        // Initial value is whether the user has tiling by default enabled, and whether the window type is normal,
-        // which means it doesn't identify as a popup, modal, dialog etc...
-        // Note: many windows don't correctly set this, force floating via settings instead.
-        // Test case: GoLand settings window
-        let active = this._settings.tileByDefault && window.get_window_type() === Meta.WindowType.NORMAL;
+        let active = this._settings.tileByDefault && this._windowSuitableForTiling(window);
         if (this._isMouseTilingKeyPressed()) {
             active = !active;
         }
-        if (this._settings.regexInvertTilingForWindowTitle.test(window.get_title())) {
-            active = !active;
-        }
         return active;
+    }
+    
+    /**
+     * Whether the specified window is suitable for tiling.
+     * Considers window type (not a popup, modal, dialog etc...) and the invert tiling config.
+     * @param Meta.Window window 
+     * @returns bool
+     */
+    _windowSuitableForTiling(window) {
+        /*
+            https://gjs-docs.gnome.org/meta12~12-windowtype/
+            https://wiki.gnome.org/Projects/Metacity/WindowTypes
+
+            Tile:
+            Normal - Most app windows
+            Utility - Attached to parent, but still seems sensible to tile. e.g. Firefox picture-in-picture
+        */
+        const type = window.get_window_type();
+        let tileable = type === Meta.WindowType.NORMAL || type === Meta.WindowType.UTILITY;
+        if (this._settings.regexInvertTilingForWindowTitle.test(window.get_title())) {
+            tileable = !tileable;
+        }
+        return tileable;
     }
 
     _isMouseTilingKeyPressed() {
