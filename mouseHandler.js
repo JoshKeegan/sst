@@ -106,7 +106,11 @@ var Handler = class MouseHandler {
     }
 
     _isTilingModeActive(window) {
-        let active = this._settings.tileByDefault;
+        // Initial value is whether the user has tiling by default enabled, and whether the window type is normal,
+        // which means it doesn't identify as a popup, modal, dialog etc...
+        // Note: many windows don't correctly set this, force floating via settings instead.
+        // Test case: GoLand settings window
+        let active = this._settings.tileByDefault && window.get_window_type() === Meta.WindowType.NORMAL;
         if (this._isMouseTilingKeyPressed()) {
             active = !active;
         }
