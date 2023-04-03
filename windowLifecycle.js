@@ -9,10 +9,10 @@ const WindowMover = Me.imports.windowMover.Mover;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 
 var Lifecycle = class WindowLifecycle {
-    constructor() {
+    constructor(windowTileable) {
+        this._windowTileable = windowTileable;
         this._settings = {
             tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),
-            regexFloatWindowTitle: new RegExp(MainExtension.settings.get_string("float-window-title")),
         };
 
         this._displaySignals = [];
@@ -22,6 +22,7 @@ var Lifecycle = class WindowLifecycle {
 
     destroy() {
         this._displaySignals.forEach(sId => global.display.disconnect(sId));
+        this._windowTileable = null;
     }
 
     _onCreated(window) {
@@ -31,7 +32,7 @@ var Lifecycle = class WindowLifecycle {
 
     _autoTile(window) {
         // Only auto-tile based on config & window state, not user-input
-        if (!this._settings.tileByDefault || !this._windowIsTileable(window)) {
+        if (!this._settings.tileByDefault || !this._windowTileable.isTileable(window)) {
             return;
         }
 
@@ -52,7 +53,7 @@ var Lifecycle = class WindowLifecycle {
         // I've set it really high for now to cater for all apps, but it needs tightening
         GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
             // Window state (mainly title) can also have been updated async, check we should still tile it
-            if (this._settings.tileByDefault && !this._windowIsTileable(window)) {
+            if (this._settings.tileByDefault && !this._windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" state has changed since initially opening and it should no longer be tiled`)
                 return;
             }
@@ -71,42 +72,11 @@ var Lifecycle = class WindowLifecycle {
         }
 
         // Otherwise tiling is the default, if we think the window should be floated, float it.
-        if (!this._windowIsTileable(window)) {
+        if (!this._windowTileable.isTileable(window)) {
             return false;
         }
         // Window can be tiled, check the user isn't asking for it to be floated
         return !this._isTilingKeyPressed();
-    }
-
-    _windowIsTileable(window) {
-        /*
-            https://gjs-docs.gnome.org/meta12~12-windowtype/
-            https://wiki.gnome.org/Projects/Metacity/WindowTypes
-
-            Tile:
-            Normal - Most app windows
-            Utility - Attached to parent, but still seems sensible to tile. e.g. Firefox picture-in-picture
-        */
-        const type = window.get_window_type();
-        if (type !== Meta.WindowType.NORMAL && 
-            type !== Meta.WindowType.UTILITY) {
-            return false;
-        }
-
-        // Windows with WM_TRANSIENT_FOR set are pop-ups for the window it specifies
-        if (window.get_transient_for() !== null) {
-            return false;
-        }
-
-        // Don't tile windows that can't be resized:
-        //  - Splash/loading screen: intentended to float
-        //  - Pop-up: we want to float these
-        //  - Poor UI needing fixed window size: can't tile these anyway ¯\_(ツ)_/¯
-        if (!window.resizeable) {
-            return false;
-        }
-
-        return !this._settings.regexFloatWindowTitle.test(window.get_title());
     }
 
     _isTilingKeyPressed() {

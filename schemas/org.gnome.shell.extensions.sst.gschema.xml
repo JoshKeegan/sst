@@ -43,15 +43,5 @@
     <key name="tile-by-default" type="b">
       <default>true</default>
     </key>
-
-    <!-- 
-      Float window title: Regex on window title that forces a window to be floating
-      If title is hidden, you can always find it by running:
-      # xprop | grep "WM_NAME(STRING)"
-      Then clicking on the window
-    -->
-    <key name="float-window-title" type="s">
-      <default><![CDATA['^(Zoom - Licensed Account|JetBrains Toolbox|Calculator|Settings|Preferences(\\s.+)|About(\\s.+)?|Steam Sign In|Steam - .+)$']]></default>
-    </key>
   </schema>
 </schemalist>

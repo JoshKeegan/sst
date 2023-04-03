@@ -1,0 +1,29 @@
+{
+    "floatingRules": 
+    [
+        {
+            "title": "^Zoom - Licensed Account$"
+        },
+        {
+            "title": "^JetBrains Toolbox$"
+        },
+        {
+            "title": "^Calculator$"
+        },
+        {
+            "title": "^Settings$"
+        },
+        {
+            "title": "^Preferences(\\s.+)?$"
+        },
+        {
+            "title": "^About(\\s.+)?$"
+        },
+        {
+            "title": "^Steam Sign In$"
+        },
+        {
+            "title": "^Steam - .+$"
+        }
+    ]
+}
