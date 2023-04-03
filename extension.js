@@ -54,7 +54,8 @@ function init() {
     Regex on window class &/or title that forces a window to be floating
     Find values by running:
     # xprop | grep -e "WM_NAME(" -e "WM_CLASS("
-    Then clicking on the window
+    Then clicking on the window.
+    Note that there may be multiple values for class. You need to use the last one.
 */
 
 function _loadConfig() {
