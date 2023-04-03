@@ -45,14 +45,12 @@
     </key>
 
     <!-- 
-      Invert tiling for windows: Regex on window title
-      - If tile-by-default is true, this makes these windows float by default
-      - If tile-by-default is false, this makes these windows tiled by default
+      Float window title: Regex on window title that forces a window to be floating
       If title is hidden, you can always find it by running:
       # xprop | grep "WM_NAME(STRING)"
       Then clicking on the window
     -->
-    <key name="invert-tiling-for-window-title" type="s">
+    <key name="float-window-title" type="s">
       <default><![CDATA['^(Zoom - Licensed Account|JetBrains Toolbox|Calculator|Settings|Preferences(\\s.+)|About(\\s.+)?|Steam Sign In|Steam - .+)$']]></default>
     </key>
   </schema>

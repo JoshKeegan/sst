@@ -12,7 +12,7 @@ var Lifecycle = class WindowLifecycle {
     constructor() {
         this._settings = {
             tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),
-            regexInvertTilingForWindowTitle: new RegExp(MainExtension.settings.get_string("invert-tiling-for-window-title")),
+            regexFloatWindowTitle: new RegExp(MainExtension.settings.get_string("float-window-title")),
         };
 
         this._displaySignals = [];
@@ -30,7 +30,8 @@ var Lifecycle = class WindowLifecycle {
     }
 
     _autoTile(window) {
-        if (!this.isTilingModeActive(window)) {
+        // Only auto-tile based on config & window state, not user-input
+        if (!this._settings.tileByDefault || !this._windowIsTileable(window)) {
             return;
         }
 
@@ -39,7 +40,7 @@ var Lifecycle = class WindowLifecycle {
         // Windows generally re-open in their previous position (ish).
         //  Auto-tile the window to the tile that its center is within (allows for some movement, 
         //  it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
-        log(`Auto-tiling ${window.get_title()}`);
+        log(`Auto-tiling "${window.get_title()}"`);
         log(`Initial rect\t${rectToString(window.get_frame_rect())}`);
 
         // Leave a small delay for the initial window position to be set, some windows async change this 
@@ -50,28 +51,34 @@ var Lifecycle = class WindowLifecycle {
         //  e.g. For a gnome terminal 50ms is plenty, but for Firefox 200ms wouldn't be long enough...
         // I've set it really high for now to cater for all apps, but it needs tightening
         GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
+            // Window state (mainly title) can also have been updated async, check we should still tile it
+            if (this._settings.tileByDefault && !this._windowIsTileable(window)) {
+                log(`Window "${window.get_title()}" state has changed since initially opening and it should no longer be tiled`)
+                return;
+            }
             log(`Post-delay rect\t${rectToString(window.get_frame_rect())}`);
             const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
             WindowMover.move(window, tile);
-            log(`Auto-tiling ${window.get_title()} to ${tile}`);
+            log(`Auto-tiling "${window.get_title()}" to ${tile}`);
         });
     }
 
     isTilingModeActive(window) {
-        let active = this._settings.tileByDefault && this._windowSuitableForTiling(window);
-        if (this._isTilingKeyPressed()) {
-            active = !active;
+        // If floating by default, control tiling entirely based on user-input. Assumes that if the user asks 
+        //  for a window to be tiled, they want it tiling regardless of whether we think it should be.
+        if (!this._settings.tileByDefault) {
+            return this._isTilingKeyPressed();
         }
-        return active;
+
+        // Otherwise tiling is the default, if we think the window should be floated, float it.
+        if (!this._windowIsTileable(window)) {
+            return false;
+        }
+        // Window can be tiled, check the user isn't asking for it to be floated
+        return !this._isTilingKeyPressed();
     }
-    
-    /**
-     * Whether the specified window is suitable for tiling.
-     * Considers window type (not a popup, modal, dialog etc...) and the invert tiling config.
-     * @param Meta.Window window 
-     * @returns bool
-     */
-    _windowSuitableForTiling(window) {
+
+    _windowIsTileable(window) {
         /*
             https://gjs-docs.gnome.org/meta12~12-windowtype/
             https://wiki.gnome.org/Projects/Metacity/WindowTypes
@@ -81,15 +88,25 @@ var Lifecycle = class WindowLifecycle {
             Utility - Attached to parent, but still seems sensible to tile. e.g. Firefox picture-in-picture
         */
         const type = window.get_window_type();
-        if (type === Meta.WindowType.NORMAL || 
-            type === Meta.WindowType.UTILITY) {
-            return !this._settings.regexInvertTilingForWindowTitle.test(window.get_title());
+        if (type !== Meta.WindowType.NORMAL && 
+            type !== Meta.WindowType.UTILITY) {
+            return false;
         }
-        // If the window type is not tileable, don't apply the regex inversion, as it can make a non-tileable "About" 
-        //  window tile again by matching both checks.
-        // We don't want the inversion for these windows anyway, it mainly exists to catch "normal" windows that are actually
-        //  pop-ups.
-        return false;
+
+        // Windows with WM_TRANSIENT_FOR set are pop-ups for the window it specifies
+        if (window.get_transient_for() !== null) {
+            return false;
+        }
+
+        // Don't tile windows that can't be resized:
+        //  - Splash/loading screen: intentended to float
+        //  - Pop-up: we want to float these
+        //  - Poor UI needing fixed window size: can't tile these anyway ¯\_(ツ)_/¯
+        if (!window.resizeable) {
+            return false;
+        }
+
+        return !this._settings.regexFloatWindowTitle.test(window.get_title());
     }
 
     _isTilingKeyPressed() {
