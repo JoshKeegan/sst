@@ -57,14 +57,22 @@ function init() {
     Then clicking on the window.
     Note that there may be multiple values for class. You need to use the last one.
 */
-
 function _loadConfig() {
-    // TODO: load from user's home dir & fallback to default if not present
-    const path = GLib.get_user_data_dir()+"/gnome-shell/extensions/sst@joshkeegan.co.uk/config.default.json";
+    // load from user's home dir & fallback to default if not present
+    let [found, userConfig] = _loadConfigFile(GLib.get_user_config_dir() + "/sst/config.json");
+    if (found) {
+        return userConfig;
+    }
+    log("sst: no user config found, loading default");
+    let [_, defaultConfig] = _loadConfigFile(
+        GLib.get_user_data_dir()+"/gnome-shell/extensions/sst@joshkeegan.co.uk/config.default.json");
+    return defaultConfig;
+}
+
+function _loadConfigFile(path) {
     const file = Gio.File.new_for_path(path);
     if (!file.query_exists(null)) {
-        log("sst: error loading config - cannot find default config file");
-        throw new Error("loading config - cannot find default config file");
+        return [false, null];
     }
 
     const [ok, bytes, _] = file.load_contents(null);
@@ -72,5 +80,6 @@ function _loadConfig() {
         throw new Error("loading config - could not read file");
     }
     const string = byteArray.toString(bytes);
-    return JSON.parse(string);
+    log(string);
+    return [true, JSON.parse(string)];
 }
