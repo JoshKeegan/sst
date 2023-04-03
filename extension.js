@@ -48,6 +48,15 @@ function init() {
     log("Init sst");
 }
 
+/*
+    TODO: document in readme - until then docs are...
+    floatingRules: [{ class, notClass, title, notTitle }]
+    Regex on window class &/or title that forces a window to be floating
+    Find values by running:
+    # xprop | grep -e "WM_NAME(" -e "WM_CLASS("
+    Then clicking on the window
+*/
+
 function _loadConfig() {
     // TODO: load from user's home dir & fallback to default if not present
     const path = GLib.get_user_data_dir()+"/gnome-shell/extensions/sst@joshkeegan.co.uk/config.default.json";

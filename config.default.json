@@ -5,7 +5,12 @@
             "title": "^Zoom - Licensed Account$"
         },
         {
+            "class": "jetbrains-toolbox",
             "title": "^JetBrains Toolbox$"
+        },
+        {
+            "class": "^jetbrains-",
+            "title": "^Welcome to "
         },
         {
             "title": "^Calculator$"
@@ -20,10 +25,8 @@
             "title": "^About(\\s.+)?$"
         },
         {
-            "title": "^Steam Sign In$"
-        },
-        {
-            "title": "^Steam - .+$"
+            "class": "^Steam$",
+            "notTitle": "^Steam$"
         }
     ]
 }
