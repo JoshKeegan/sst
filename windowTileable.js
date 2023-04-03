@@ -17,7 +17,7 @@ var Tileable = class WindowTileable {
                 rule.title = new RegExp(c.title);
             }
             return rule;
-        });
+        }).filter(r => "class" in r || "title" in r);
     }
 
     destroy() {
