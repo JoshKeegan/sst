@@ -5,10 +5,6 @@
             "title": "^Zoom - Licensed Account$"
         },
         {
-            "class": "jetbrains-toolbox",
-            "title": "^JetBrains Toolbox$"
-        },
-        {
             "class": "^jetbrains-",
             "title": "^Welcome to "
         },
