@@ -31,8 +31,9 @@ var Lifecycle = class WindowLifecycle {
     }
 
     _autoTile(window) {
-        // Only auto-tile based on config & window state, not user-input
-        if (!this._settings.tileByDefault || !this._windowTileable.isTileable(window)) {
+        // If tile by default is off, or the window's fixed properties (ones that cannot be updated by the app async) 
+        //  mean it cannot be tiled then this window will never get auto-tiled.
+        if (!this._settings.tileByDefault || !this._windowTileable.isTileableFixedProps(window)) {
             return;
         }
 
@@ -41,8 +42,7 @@ var Lifecycle = class WindowLifecycle {
         // Windows generally re-open in their previous position (ish).
         //  Auto-tile the window to the tile that its center is within (allows for some movement, 
         //  it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
-        log(`Auto-tiling "${window.get_title()}"`);
-        log(`Initial rect\t${rectToString(window.get_frame_rect())}`);
+        log(`Initial rect\t${rectToString(window.get_frame_rect())} for "${window.get_title()}"`);
 
         // Leave a small delay for the initial window position to be set, some windows async change this 
         //  during start, e.g. terimal & spotify. Some don't so could be set instantly e.g. Chrome
@@ -52,15 +52,16 @@ var Lifecycle = class WindowLifecycle {
         //  e.g. For a gnome terminal 50ms is plenty, but for Firefox 200ms wouldn't be long enough...
         // I've set it really high for now to cater for all apps, but it needs tightening
         GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
-            // Window state (mainly title) can also have been updated async, check we should still tile it
+            // Window state (mainly title) can have been updated async, check for whether to tile it should be after
+            //  changes, so check now
             if (this._settings.tileByDefault && !this._windowTileable.isTileable(window)) {
-                log(`Window "${window.get_title()}" state has changed since initially opening and it should no longer be tiled`)
+                log(`Window "${window.get_title()}" is not auto-tileable`)
                 return;
             }
             log(`Post-delay rect\t${rectToString(window.get_frame_rect())}`);
             const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
-            WindowMover.move(window, tile);
             log(`Auto-tiling "${window.get_title()}" to ${tile}`);
+            WindowMover.move(window, tile);
         });
     }
 

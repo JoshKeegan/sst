@@ -31,6 +31,29 @@ var Tileable = class WindowTileable {
     }
 
     isTileable(window) {
+        if (!this.isTileableFixedProps) {
+            return false;
+        }
+        
+        // Don't tile windows that can't be resized:
+        //  - Splash/loading screen: intentended to float
+        //  - Pop-up: we want to float these
+        //  - Poor UI needing fixed window size: can't tile these anyway ¯\_(ツ)_/¯
+        if (!window.resizeable) {
+            return false;
+        }
+
+        return !this._matchesFloatingRule(window);
+    }
+
+    /**
+     * Checks whether a window could be tileable, limited to using properties that will not get updated.
+     * Safe to be used before being certain a window state has settled (e.g. size changes, or title updated).
+     * If returns false, sure it cannot be tiled.
+     * If returns true, it could be tileable - call isTileable once it has made any async changes
+     * @param Meta.Window window 
+     */
+    isTileableFixedProps(window) {
         /*
             https://gjs-docs.gnome.org/meta12~12-windowtype/
             https://wiki.gnome.org/Projects/Metacity/WindowTypes
@@ -50,15 +73,7 @@ var Tileable = class WindowTileable {
             return false;
         }
 
-        // Don't tile windows that can't be resized:
-        //  - Splash/loading screen: intentended to float
-        //  - Pop-up: we want to float these
-        //  - Poor UI needing fixed window size: can't tile these anyway ¯\_(ツ)_/¯
-        if (!window.resizeable) {
-            return false;
-        }
-
-        return !this._matchesFloatingRule(window);
+        return true;
     }
 
     _matchesFloatingRule(window) {

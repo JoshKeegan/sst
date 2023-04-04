@@ -2,7 +2,8 @@
     "floatingRules": 
     [
         {
-            "title": "^Zoom - Licensed Account$"
+            "class": "^zoom$",
+            "notTitle": "^Zoom Meeting$"
         },
         {
             "class": "^jetbrains-",
