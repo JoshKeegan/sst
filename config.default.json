@@ -10,10 +10,14 @@
             "title": "^Welcome to "
         },
         {
+            "class": "^jetbrains-",
+            "title": "^Push Commits to "
+        },
+        {
             "title": "^Calculator$"
         },
         {
-            "title": "^Settings$"
+            "title": "^(.+\\s)?Settings$"
         },
         {
             "title": "^Preferences(\\s.+)?$"
