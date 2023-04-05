@@ -44,6 +44,16 @@ var Lifecycle = class WindowLifecycle {
         //  it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
         log(`Initial rect\t${rectToString(window.get_frame_rect())} for "${window.get_title()}"`);
 
+        // If the window is tileable right now, tile it. We may just need to re-tile it
+        //  if it is moved async/
+        // TODO: Do we care if a window appears tileable when opened, but then matches a floating
+        //  rule after async update? May need to make some floating rules specifically sync/async
+        if (this._windowTileable.isTileable(window)) {
+            const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
+            log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
+            WindowMover.move(window, tile);
+        }
+
         // Leave a small delay for the initial window position to be set, some windows async change this 
         //  during start, e.g. terimal & spotify. Some don't so could be set instantly e.g. Chrome
         // TODO: Improve this simple delay. Some apps start quicker than others, and this will be hardware
@@ -51,10 +61,12 @@ var Lifecycle = class WindowLifecycle {
         //  we could move them sooner for a snappier experience.
         //  e.g. For a gnome terminal 50ms is plenty, but for Firefox 200ms wouldn't be long enough...
         // I've set it really high for now to cater for all apps, but it needs tightening
+        // Idea: bind to "position-changed" event. If called in first 500ms then that triggers re-tile,
+        //  otherwise after 500ms the window hasn't moved & the event can be cancelled.
         GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
             // Window state (mainly title) can have been updated async, check for whether to tile it should be after
             //  changes, so check now
-            if (this._settings.tileByDefault && !this._windowTileable.isTileable(window)) {
+            if (!this._windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
                 return;
             }
