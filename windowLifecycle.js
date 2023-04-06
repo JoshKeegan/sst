@@ -30,6 +30,14 @@ var Lifecycle = class WindowLifecycle {
         this._autoTile(window);
     }
 
+    /**
+     * Auto-tile a window.
+     * 
+     * Auto-tiles the window to the tile that its center is within (allows for some movement, 
+     * it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
+     * This works because windows generally re-open in their previous position(ish).
+     * @param Meta.Window window 
+     */
     _autoTile(window) {
         // If tile by default is off, or the window's fixed properties (ones that cannot be updated by the app async) 
         //  mean it cannot be tiled then this window will never get auto-tiled.
@@ -38,39 +46,60 @@ var Lifecycle = class WindowLifecycle {
         }
 
         const rectToString = r => `x: ${r.x}\ty: ${r.y}\twidth: ${r.width}\theight: ${r.height}`;
-
-        // Windows generally re-open in their previous position (ish).
-        //  Auto-tile the window to the tile that its center is within (allows for some movement, 
-        //  it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
         log(`Initial rect\t${rectToString(window.get_frame_rect())} for "${window.get_title()}"`);
 
-        // If the window is tileable right now, tile it. We may just need to re-tile it
-        //  if it is moved async/
-        // TODO: Do we care if a window appears tileable when opened, but then matches a floating
-        //  rule after async update? May need to make some floating rules specifically sync/async
+        // If the window is tileable right now, tile it. If the window moves itself async, we will need to re-tile it though.
         if (this._windowTileable.isTileable(window)) {
             const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
             log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
             WindowMover.move(window, tile);
+
+            // Note: unhandled edge case (haven't actually seen it happen)
+            // If a window appears tileable when opened, it will hit this block of code & auto-tile.
+            // If after an async update it should not be tiled (e.g. window title changes to match a
+            // floating rule) then it will still have been tiled by this initial tiling, even if the
+            // later auto-tiling skips it.
+            // If there's ever an example of an app like this, then we'd need to handle it by storing 
+            // the original rect & the rect we tiled it to. Then later when we find it should float, 
+            // check whether its current rect still matches the one we initially auto-tiled to & if so
+            // move it back to its original floating rect.
         }
 
-        // Leave a small delay for the initial window position to be set, some windows async change this 
-        //  during start, e.g. terimal & spotify. Some don't so could be set instantly e.g. Chrome
-        // TODO: Improve this simple delay. Some apps start quicker than others, and this will be hardware
-        //  and load dependant too. For apps that settle in position quicker, if we can detect it then
-        //  we could move them sooner for a snappier experience.
-        //  e.g. For a gnome terminal 50ms is plenty, but for Firefox 200ms wouldn't be long enough...
-        // I've set it really high for now to cater for all apps, but it needs tightening
-        // Idea: bind to "position-changed" event. If called in first 500ms then that triggers re-tile,
-        //  otherwise after 500ms the window hasn't moved & the event can be cancelled.
-        GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
-            // Window state (mainly title) can have been updated async, check for whether to tile it should be after
-            //  changes, so check now
+        // Auto-tile on the window moving itself async (many apps will open a window, then async set its position).
+        // This is only to handle async updates immediately following a window being opened, so gets 
+        // cancelled after a small delay.
+        let posChangedSignal = window.connect("position-changed", w => {
+            log(`pos changed: ${rectToString(w.get_frame_rect())}`);
             if (!this._windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
                 return;
             }
+            const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
+            log(`Auto-tiling "${window.get_title()}" to ${tile} (deferred)`);
+            
+            GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
+                log(`executing deferred auto-tile of "${window.get_title()}" to ${tile}`);
+                WindowMover.move(window, tile);
+            });
+        });
+
+        // After a small delay, clear the position changed event handler
+        GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
             log(`Post-delay rect\t${rectToString(window.get_frame_rect())}`);
+
+            window.disconnect(posChangedSignal);
+
+            // Make a final check for whether the window should be auto-tiled. This is to catch any windows
+            // that have made async updates (other than position updates) that will make them tileable, but were 
+            // not initially tiled (e.g. changing title and the initial value matched a floating rule).
+            // 99.9% of windows should be handled by this point. The delay between window open & auto-tile
+            // is not a pleasant UX, but it is here to ensure all windows get handled. Anything relying on this
+            // should be looked into as there may be other events we can listen to (e.g. window resize) to trigger 
+            // the auto-tile earlier.
+            if (!this._windowTileable.isTileable(window)) {
+                log(`Window "${window.get_title()}" is not auto-tileable`)
+                return;
+            }
             const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
             log(`Auto-tiling "${window.get_title()}" to ${tile}`);
             WindowMover.move(window, tile);
