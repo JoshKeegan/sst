@@ -50,6 +50,11 @@ var Manager = class GnomeSettingsManager {
                 this.settingsRemoveFromStrv(
                     gnomeKeybinds, "switch-to-workspace-right", sstSettings.get_strv("tile-move-right-layer-1")));
             
+            // Window close setting is implemented natively. Instead of also adding our own implementation,
+            // just update the config so the sst keybinds get handled too.
+            this._resetFns.push(
+                this.settingsAddToStrv(gnomeKeybinds, "close", sstSettings.get_strv("close")));
+
             // Native shift overview up/down that has been added in newer Gnome versions collides. We want <Super><Alt>Up/Down
             // Not sure why you'd want a keyboard shortcut for this anyway as you can type at the top level... Shifting the overview
             // up seems like mouse behaviour to me because it gives you the grid of installed applications to select from...
@@ -98,6 +103,29 @@ var Manager = class GnomeSettingsManager {
         const removed = orig.filter(s => !values.includes(s));
         log(`Removing '${values}' from ${key} setting. Original '${orig}', now '${removed}'`);
         settings.set_strv(key, removed);
+
+        return () => {
+            this.logRevertSetting(key, orig);
+            settings.set_strv(key, orig);
+        }
+    }
+
+    /**
+     * Updates a strv (string array) setting, adding the specified values
+     * @param {Gio.Settings} settings - a settings object loaded for a schema 
+     * @param string key - key within the settings schema to update (must correlate with a string array type strv)
+     * @param string[] values - values to add to the array
+     * @returns function to return key back to its original state
+     */
+    settingsAddToStrv(settings, key, values) {
+        if (!settings.settings_schema.has_key(key)) {
+            log(`${settings.settings_schema.get_id()} does not contain key ${key}, skipping updating it`);
+            return () => {  };
+        }
+        const orig = settings.get_strv(key);
+        const updated = [...orig, ...values];
+        log(`Adding '${values}' to ${key} setting. Original '${orig}#, now '${updated}'`);
+        settings.set_strv(key, updated);
 
         return () => {
             this.logRevertSetting(key, orig);

@@ -43,5 +43,9 @@
     <key name="tile-by-default" type="b">
       <default>true</default>
     </key>
+
+    <key name="close" type="as">
+      <default><![CDATA[['<Super>Q']]]></default>
+    </key>
   </schema>
 </schemalist>
