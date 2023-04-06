@@ -84,10 +84,18 @@ var Lifecycle = class WindowLifecycle {
         });
 
         // After a small delay, clear the position changed event handler
+        const windowId = window.get_id();
         GLib.timeout_add(GLib.PRIORITY_LOW, 500, () => {
-            log(`Post-delay rect\t${rectToString(window.get_frame_rect())}`);
-
             window.disconnect(posChangedSignal);
+
+            // Check if the window has already been closed. 
+            // Trying to use window object when the window no longer exists crashes Mutter.
+            if (!this._isWindowOpen(windowId)) {
+                log("Window closed before auto-tile delay fired");
+                return false;
+            }
+
+            log(`Post-delay rect\t${rectToString(window.get_frame_rect())}`);
 
             // Make a final check for whether the window should be auto-tiled. This is to catch any windows
             // that have made async updates (other than position updates) that will make them tileable, but were 
@@ -124,5 +132,15 @@ var Lifecycle = class WindowLifecycle {
     _isTilingKeyPressed() {
         // TODO: Make key configurable
         return MainExtension.keybindHandler.isModKeyPressed(Clutter.ModifierType.CONTROL_MASK);
+    }
+
+    _isWindowOpen(windowId) {
+        const windows = global.workspace_manager.get_active_workspace().list_windows();
+        for (let i = 0; i < windows.length; i++) {
+            if (windows[i].get_id() === windowId) {
+                return true;
+            }
+        }
+        return false;
     }
 }
