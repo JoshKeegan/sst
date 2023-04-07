@@ -14,7 +14,7 @@ var Tileable = class WindowTileable {
                 rule.class = new RegExp(c.class);
             }
             if ("notClass" in c) {
-                rule.notClas = new RegExp(c.notClass);
+                rule.notClass = new RegExp(c.notClass);
             }
             if ("title" in c) {
                 rule.title = new RegExp(c.title);
