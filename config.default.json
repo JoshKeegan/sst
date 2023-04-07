@@ -1,6 +1,5 @@
 {
-    "floatingRules": 
-    [
+    "floatingRules": [
         {
             "class": "^zoom$",
             "notTitle": "^Zoom Meeting$"

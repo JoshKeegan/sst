@@ -48,12 +48,30 @@
       <default><![CDATA[['<Super>Q']]]></default>
     </key>
 
+    <key name="new-window" type="as">
+      <default><![CDATA[['<Super>Return','<Super>KP_Enter']]]></default>
+    </key>
+
     <key name="launch-term" type="as">
       <default><![CDATA[['<Super>T']]]></default>
     </key>
 
-    <key name="new-window" type="as">
-      <default><![CDATA[['<Super>Return','<Super>KP_Enter']]]></default>
+    <key name="launch-calc" type="as">
+      <default><![CDATA[['<Super>C']]]></default>
+    </key>
+
+    <key name="launch-resource-monitor" type="as">
+      <default><![CDATA[['<Ctrl><Shift>Escape']]]></default>
+    </key>
+    <key name="resource-monitor-cmd" type="s">
+      <default><![CDATA['gnome-system-monitor']]></default>
+    </key>
+    <key name="resource-monitor-needs-terminal" type="b">
+      <default>false</default>
+    </key>
+
+    <key name="launch-files" type="as">
+      <default><![CDATA[['<Super>E']]]></default>
     </key>
   </schema>
 </schemalist>

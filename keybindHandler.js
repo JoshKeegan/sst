@@ -38,14 +38,14 @@ const tileMoveKeys = function(){
 }();
 
 var Handler = class KeybindHandler {
-    constructor() {
+    constructor(settings) {
         const defaultTerminalSettings = ExtensionUtils.getSettings("org.gnome.desktop.default-applications.terminal");
-        this._execTerminal = defaultTerminalSettings.get_string("exec");
+        const execTerminal = defaultTerminalSettings.get_string("exec");
 
         for (const settingName in tileMoveKeys) {
             const handlers = tileMoveKeys[settingName];
             main.wm.addKeybinding(settingName, 
-                MainExtension.settings,
+                settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
                 this._onTileMoveKeyPressed.bind(
@@ -55,23 +55,41 @@ var Handler = class KeybindHandler {
                     handlers.floatingTileSelector, 
                     handlers.tileLayer));
         }
-        main.wm.addKeybinding("launch-term",
-            MainExtension.settings,
+        main.wm.addKeybinding("new-window",
+            settings,
+            Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+                Shell.ActionMode.NORMAL,
+                this._onNewWindowKeyPressed.bind(this));
+
+        this._launchKeybinds = [];
+        this._addLaunchKeybinding("launch-term", settings, execTerminal, false);
+        this._addLaunchKeybinding("launch-calc", settings, "gnome-calculator", false);
+        this._addLaunchKeybinding("launch-resource-monitor", settings, 
+            () => settings.get_string("resource-monitor-cmd"), 
+            () => settings.get_boolean("resource-monitor-needs-terminal"));
+        this._addLaunchKeybinding("launch-files", settings, "nautilus", false);
+    }
+    
+    _addLaunchKeybinding(settingName, settings, cmd, needsTerminal) {
+        this._launchKeybinds.push(settingName);
+        main.wm.addKeybinding(settingName,
+            settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-                this._onLaunchTermKeyPressed.bind(this));
-        main.wm.addKeybinding("new-window",
-        MainExtension.settings,
-        Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
-            Shell.ActionMode.NORMAL,
-            this._onNewWindowKeyPressed.bind(this));
+                () => {
+                    // If params can be functions. Eval now if they are.
+                    // This is to allow them to be configurable & values changed without restarting
+                    // the whole extension.
+                    let evaledCmd = typeof(cmd) === "function" ? cmd() : cmd;
+                    let evaledNeedsTerminal = typeof(needsTerminal) === "function" ? needsTerminal() : needsTerminal;
+                    log(`Pressed ${settingName}`);
+                    this._launchCmd(evaledCmd, evaledNeedsTerminal);
+                });
     }
 
     destroy() {
-        for (const settingName in tileMoveKeys) {
-            main.wm.removeKeybinding(settingName);
-        }
-        main.wm.removeKeybinding("launch-term");
+        tileMoveKeys.concat(this._launchKeybinds).
+            forEach(settingName => main.wm.removeKeybinding(settingName));
         main.wm.removeKeybinding("new-window");
     }
 
@@ -142,11 +160,6 @@ var Handler = class KeybindHandler {
         else {
             log(`No target for movement ${settingName} found, not moving window`);
         }
-    }
-
-    _onLaunchTermKeyPressed() {
-        log("Launch terminal key pressed");
-        this._launchCmd(this._execTerminal, false);
     }
 
     _onNewWindowKeyPressed() {

@@ -24,7 +24,7 @@ function enable() {
     this.windowTileable = new WindowTileable(config);
     this.windowLifecycle = new WindowLifecycle(this.windowTileable);
     this.mouseHandler = new MouseHandler();
-    this.keybindHandler = new KeybindHandler();
+    this.keybindHandler = new KeybindHandler(this.settings);
 }
 
 function disable() {
