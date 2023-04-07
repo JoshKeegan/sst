@@ -47,5 +47,13 @@
     <key name="close" type="as">
       <default><![CDATA[['<Super>Q']]]></default>
     </key>
+
+    <key name="launch-term" type="as">
+      <default><![CDATA[['<Super>T']]]></default>
+    </key>
+
+    <key name="new-window" type="as">
+      <default><![CDATA[['<Super>Return','<Super>KP_Enter']]]></default>
+    </key>
   </schema>
 </schemalist>

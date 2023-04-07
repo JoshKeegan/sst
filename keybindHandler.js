@@ -39,6 +39,9 @@ const tileMoveKeys = function(){
 
 var Handler = class KeybindHandler {
     constructor() {
+        const defaultTerminalSettings = ExtensionUtils.getSettings("org.gnome.desktop.default-applications.terminal");
+        this._execTerminal = defaultTerminalSettings.get_string("exec");
+
         for (const settingName in tileMoveKeys) {
             const handlers = tileMoveKeys[settingName];
             main.wm.addKeybinding(settingName, 
@@ -52,12 +55,24 @@ var Handler = class KeybindHandler {
                     handlers.floatingTileSelector, 
                     handlers.tileLayer));
         }
+        main.wm.addKeybinding("launch-term",
+            MainExtension.settings,
+            Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+                this._onLaunchTermKeyPressed.bind(this));
+        main.wm.addKeybinding("new-window",
+        MainExtension.settings,
+        Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+            Shell.ActionMode.NORMAL,
+            this._onNewWindowKeyPressed.bind(this));
     }
 
     destroy() {
         for (const settingName in tileMoveKeys) {
             main.wm.removeKeybinding(settingName);
         }
+        main.wm.removeKeybinding("launch-term");
+        main.wm.removeKeybinding("new-window");
     }
 
     isModKeyPressed(modMask) {
@@ -69,8 +84,7 @@ var Handler = class KeybindHandler {
         log("Pressed " + settingName);
 
         const window = global.display.focus_window;
-        if (!window)
-        {
+        if (!window) {
             return;
         }
 
@@ -128,5 +142,57 @@ var Handler = class KeybindHandler {
         else {
             log(`No target for movement ${settingName} found, not moving window`);
         }
+    }
+
+    _onLaunchTermKeyPressed() {
+        log("Launch terminal key pressed");
+        this._launchCmd(this._execTerminal, false);
+    }
+
+    _onNewWindowKeyPressed() {
+        log("New window key pressed");
+        
+        const window = global.display.focus_window;
+        if (!window) {
+            log("No window currently in focus");
+            return;
+        }
+
+        const app = this._findApp(window);
+        if (app === null) {
+            log(`Cannot find app for window ${window.get_title()}`);
+            return;
+        }
+        
+        if (!app.can_open_new_window()) {
+            log(`Cannot open new window for app ${app.get_name()}`);
+            return;
+        }
+        app.open_new_window(-1);
+    }
+
+    _findApp(window) {
+        const windowId = window.get_id();
+        const appSys = Shell.AppSystem.get_default();
+        const runningApps = appSys.get_running();
+        for (let i = 0; i < runningApps.length; i++) {
+            const app = runningApps[i];
+            const appWindows = app.get_windows(); 
+            for (let j = 0; j < appWindows.length; i++) {
+                if (appWindows[j].get_id() === windowId) {
+                    return app;
+                }
+            }
+        }
+        return null;
+    }
+
+    _launchCmd(cmd, needsTerminal) {
+        let flags = Gio.AppInfoCreateFlags.SUPPORTS_STARTUP_NOTIFICATION;
+        if (needsTerminal) {
+            flags = flags | Gio.AppInfoCreateFlags.NEEDS_TERMINAL;
+        }
+        const app = Gio.AppInfo.create_from_commandline(cmd, null, flags);
+        app.launch([], null);
     }
 };
