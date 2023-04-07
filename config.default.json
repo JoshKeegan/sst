@@ -17,7 +17,8 @@
             "title": "^Calculator$"
         },
         {
-            "title": "^(.+\\s)?Settings$"
+            "title": "^(.+\\s)?Settings$",
+            "notClass": "^gnome-control-center$"
         },
         {
             "title": "^Preferences(\\s.+)?$"
