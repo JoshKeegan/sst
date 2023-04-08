@@ -124,7 +124,7 @@ var Manager = class GnomeSettingsManager {
         }
         const orig = settings.get_strv(key);
         const updated = [...orig, ...values];
-        log(`Adding '${values}' to ${key} setting. Original '${orig}#, now '${updated}'`);
+        log(`Adding '${values}' to ${key} setting. Original '${orig}', now '${updated}'`);
         settings.set_strv(key, updated);
 
         return () => {
