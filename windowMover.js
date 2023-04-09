@@ -1,5 +1,7 @@
 "use strict";
 
+const { GLib } = imports.gi;
+
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
@@ -52,6 +54,44 @@ var Mover = class WindowMover {
     }
 
     static _move(window, tile) {
+        /* 
+            TODO: 
+                - Refactor: move elsewhere - not window movement
+                - Can this be called on window start, or could it change??
+                - Do we want to restore properties when a window floats?
+                    * e.g. Firefox picture in picture maintains aspect ratio during resize, won't without aspect hint
+                - Remove min size to force windows into smallest sub-tiles..?
+                - Remove size increment so windows always fill space (e.g. terminal)..?
+        */
+
+        // Remove size hints that could prevent the window from tiling properly
+        // Note that size hints are updated, not removed (e.g. via xprops) because if removed then you
+        // need to restart gnome-shell for it to pick up the lack of the property, but changing the value
+        // fires an event that is listened for and updates the hints that gnome will apply to the window.
+        
+        // Window description should be the X window ID, but check it starts with 0x before using it...
+        const xid = window.get_description();
+        if (xid && xid.startsWith("0x")) {
+            log(`Disabling aspect ratio window size hint for x window id: ${xid}`);
+            // TODO: There will almost certainly be a better way of getting the extensions directory.
+            // The same code is in extension.js so can be deduped if nothing else
+            const[ok, stdout, stderr, waitStatus] = GLib.spawn_command_line_sync(
+                `${GLib.get_user_data_dir()}/gnome-shell/extensions/sst@joshkeegan.co.uk/tools/bin/xUpdateSizeHints -id ${xid}`);
+            if (ok && waitStatus === 0 && stderr.length === 0) {
+                log(`Aspect ratio window size hint disabled for x window id ${xid}`);
+                log(stdout);
+            }
+            else {
+                // TODO: error "No such property 'WM_NORMAL_HINTS'" is expected as they are optional
+                log(`Failed to disable aspect ratio hint for x window id ${xid}.\nstdout: ${stdout}\nstderr: ${stderr}`);
+            }
+        }
+        else {
+            log(`Could not get this window's ID with the X server (${window.get_title()})`);
+        }
+
+        // TODO: The first move does not fill the space, but moving the window a second time within the same
+        // tile will. Needs investigating...
         window.move_resize_frame(false, tile.x, tile.y, tile.width, tile.height);
     }
 }

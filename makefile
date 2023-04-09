@@ -5,7 +5,12 @@ lint:
 		mstruebing/editorconfig-checker && \
 	echo "Editorconfig styles followed"
 
+.PHONY: ci
 ci: lint
+
+.PHONY: build-tools
+build-tools:
+	(cd tools/xUpdateSizeHints && go build -o ../bin/)
 
 .PHONY: settings-schema-compile
 settings-schema-compile:
@@ -28,3 +33,6 @@ enable:
 .PHONY: disable
 disable:
 	gnome-extensions disable sst@joshkeegan.co.uk
+
+.PHONY: local-dev
+local-dev: build-tools settings-schema-compile disable enable

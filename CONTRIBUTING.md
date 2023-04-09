@@ -1,6 +1,12 @@
 # Contributing
 
+Dependencies:
+ - Make
+ - Go
+
 Checkout the repo to `~/.local/share/gnome-shell/extensions/sst@joshkeegan.co.uk` so that code changes are reflected locally without an installation step.
+
+Run `make build-tools` to compile the external tools. These are terminal tools that are used to perform actions that cannot be done in gnome-shell, but are invoked by the javascript extension. This is needed one-off initially, and then only needs to be re-run after changes to tools code.
 
 Run `make settings-schema-compile` to compile the settings schema. This is needed one-off initially, and then only needs to be re-run after schema changes.
 
