@@ -37,7 +37,7 @@
         },
         {
             "class": "^Code$",
-            "notTitle": " - Visual Studio Code$"
+            "notTitle": "^(.+ - )?Visual Studio Code$"
         }
     ]
 }
