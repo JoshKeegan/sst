@@ -11,7 +11,7 @@ var Mover = class WindowMover {
         //  move that other window to the sibling tile.
         if (!tile.combined && tile.parent !== null) {
             const parentTileWindow = this._getTopWindowInTile(tile.parent);
-            if(parentTileWindow !== null) {
+            if (parentTileWindow !== null) {
                 this._move(parentTileWindow, tile.sibling);
             }
         }

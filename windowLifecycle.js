@@ -45,11 +45,16 @@ var Lifecycle = class WindowLifecycle {
 
     _onLayoutChanged() {
         log("layout changed");
-
-        global.workspace_manager.get_active_workspace().list_windows().forEach(window => {
-            window.tile = null;
-            this._autoTile(window);
-        });
+        
+        // Auto-tile all windows on each workspace
+        const numWorkspaces = global.workspace_manager.get_n_workspaces();
+        for (let i = 0; i < numWorkspaces; i++) {
+            const ws = global.workspace_manager.get_workspace_by_index(i);
+            ws.list_windows().forEach(window => {
+                window.tile = null;
+                this._autoTile(window);
+            });
+        }
     }
 
     /**
