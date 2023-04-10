@@ -7,6 +7,7 @@ const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const WindowMover = Me.imports.windowMover.Mover;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
+const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 
 var Lifecycle = class WindowLifecycle {
     constructor(windowTileable) {
@@ -26,8 +27,15 @@ var Lifecycle = class WindowLifecycle {
     }
 
     _onCreated(window) {
-        log("created: " + window.get_title());
+        log(`created: ${window.get_title()}`);
+        window.tile = null;
         this._autoTile(window);
+        window.connect("size-changed", this._onSizeChanged.bind(this, window));
+    }
+
+    _onSizeChanged(window) {
+        const wRect = window.get_frame_rect();
+        log(`window "${window.get_title()}" size changed to width: ${wRect.width}, height: ${wRect.height}`);
     }
 
     /**
@@ -50,7 +58,7 @@ var Lifecycle = class WindowLifecycle {
 
         // If the window is tileable right now, tile it. If the window moves itself async, we will need to re-tile it though.
         if (this._windowTileable.isTileable(window)) {
-            const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
+            const tile = this._autoTileSelectTile(window);
             log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
             WindowMover.move(window, tile);
 
@@ -72,13 +80,15 @@ var Lifecycle = class WindowLifecycle {
             log(`pos changed: ${rectToString(w.get_frame_rect())}`);
             if (!this._windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
+                WindowMover.leave(window, window.tile);
                 return;
             }
-            const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
+            const tile = this._autoTileSelectTile(window);
             log(`Auto-tiling "${window.get_title()}" to ${tile} (deferred)`);
             
             GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
                 log(`executing deferred auto-tile of "${window.get_title()}" to ${tile}`);
+                WindowMover.leave(window, window.tile);
                 WindowMover.move(window, tile);
             });
         });
@@ -106,12 +116,28 @@ var Lifecycle = class WindowLifecycle {
             // the auto-tile earlier.
             if (!this._windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
+                WindowMover.leave(window, window.tile);
                 return;
             }
-            const tile = TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), window.get_frame_rect());
+            const tile = this._autoTileSelectTile(window);
             log(`Auto-tiling "${window.get_title()}" to ${tile}`);
+            WindowMover.leave(window, window.tile);
             WindowMover.move(window, tile);
         });
+    }
+
+    _autoTileSelectTile(window) {
+        const wRect = window.get_frame_rect();
+
+        // First see if the window matches a tile (any layer)
+        // This is mainly to handle gnome-shell restarts
+        const tile = WindowTileMatcher.matchTile(MainExtension.tiles.all, wRect);
+        if (tile !== null) {
+            return tile;
+        }
+
+        // If not, find the closest tile on the top layer & put it there
+        return TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), wRect);
     }
 
     isTilingModeActive(window) {

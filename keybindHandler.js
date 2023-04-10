@@ -8,7 +8,6 @@ const Me = ExtensionUtils.getCurrentExtension();
 const MainExtension = Me.imports.extension;
 const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
 const WindowMover = Me.imports.windowMover.Mover;
-const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 
 const tileMoveKeys = function(){
     let keys = [];
@@ -112,29 +111,32 @@ var Handler = class KeybindHandler {
             return;
         }
 
+        // If the current window is already tiled in the same layer we're interested in
         const tiles = MainExtension.tiles.getAllTiles(tileLayer);
-
-        // If the current window exactly matches a tile then move relative to that tile
-        const wRect = window.get_frame_rect();
-        const currentTile = WindowTileMatcher.matchTile(tiles, wRect);
         let targetTile = null;
-        if (currentTile !== null) {
+        if (window.tile !== null && tiles.includes(window.tile)) {
             log(`Currently in tile, moving ${settingName} relative to it`);
-            targetTile = nextTileSelector(currentTile);
+            targetTile = nextTileSelector(window.tile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
             if (settingName.startsWith("tile-move-up-") && targetTile === null) {
+                // TODO: Should we count a window as having left a tile if it goes fullscreen?
+                // We'd need to re-attach it to the tile when it leaves fullscreen
+                // Needs testing with multi-monitor & moving windows between monitors when one has a 
+                // fullscreen window on it
+
                 // Behaviour on leaving a tile
-                WindowMover.leave(window, currentTile);
+                //WindowMover.leave(window, window.tile);
 
                 window.make_fullscreen();
                 return;
             }
         }
-        // Else the window is floating
+        // Else the window is floating (or tiled in another layer, which we will treat as floating)
         else {
             log(`Window is floating, searching for best tile ${settingName}`);
             // Find the closest tile in the direction we want to move in
+            const wRect = window.get_frame_rect();
             targetTile = floatingTileSelector(tiles, wRect);
 
             // If there is no tile in that direction, find the tile with the largest intersection area
@@ -152,8 +154,7 @@ var Handler = class KeybindHandler {
 
         if (targetTile !== null) {
             // Behaviour on leaving a tile
-            const leavingTile = currentTile !== null ? currentTile : WindowTileMatcher.matchTile(MainExtension.tiles.all, window.get_frame_rect());
-            WindowMover.leave(window, leavingTile);
+            WindowMover.leave(window, window.tile);
 
             WindowMover.move(window, targetTile);
         }

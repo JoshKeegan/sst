@@ -4,7 +4,6 @@ const { GLib } = imports.gi;
 
 const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
-const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 
 var Mover = class WindowMover {
     static move(window, tile) {
@@ -15,7 +14,7 @@ var Mover = class WindowMover {
             if(parentTileWindow !== null) {
                 this._move(parentTileWindow, tile.sibling);
             }
-        }        
+        }
 
         this._move(window, tile);
     }
@@ -25,6 +24,8 @@ var Mover = class WindowMover {
         if (tile === null) {
             return;
         }
+
+        window.tile = null;
 
         // If the tile we're leaving has no other window that will be on top of this tile
         //  once we leave it, and there's a sibling tile with a window in it, then that sibling's
@@ -44,7 +45,7 @@ var Mover = class WindowMover {
         const window = this._getSortedWindows().find(
             w => w !== excludeWindow &&
                 !w.minimized && 
-                WindowTileMatcher.isWindowInTile(tile, w.get_frame_rect()));
+                w.tile === tile);
         return window ? window : null;
     }
 
@@ -54,6 +55,8 @@ var Mover = class WindowMover {
     }
 
     static _move(window, tile) {
+        window.tile = tile;
+
         /* 
             TODO: 
                 - Refactor: move elsewhere - not window movement
@@ -92,6 +95,7 @@ var Mover = class WindowMover {
 
         // TODO: The first move does not fill the space, but moving the window a second time within the same
         // tile will. Needs investigating...
+        log(`Moving window "${window.get_title()} to tile x: ${tile.x} y: ${tile.y} width: ${tile.width} height: ${tile.height}`);
         window.move_resize_frame(false, tile.x, tile.y, tile.width, tile.height);
     }
 }

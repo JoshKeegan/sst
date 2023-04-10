@@ -9,7 +9,6 @@ const MainExtension = Me.imports.extension;
 const Tile = Me.imports.tile.Tile;
 const Geometry = Me.imports.geometry.Geometry;
 const WindowMover = Me.imports.windowMover.Mover;
-const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
 const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
@@ -60,12 +59,15 @@ var Handler = class MouseHandler {
         log("sst: move started");
 
         this._posChangedId = window.connect("position-changed",
-            this._onMoving.bind(this, grabOp, window));
+            this._onMoving.bind(this, window, grabOp));
         
         // Behaviour on leaving a tile
-        const wRect = window.get_frame_rect();
-        const leavingTile = WindowTileMatcher.matchTile(MainExtension.tiles.all, wRect);
-        WindowMover.leave(window, leavingTile);
+        WindowMover.leave(window, window.tile);
+
+        // Edge case: a window can start & finish being moved without ever moving if you grab the window
+        // and then let go without moving the mouse. Fire _onMoving as soon as the window is grabbed, 
+        // to ensure state per-movement gets updated.
+        this._onMoving(window, grabOp);
     }
 
     _onMoveFinished(window) {
@@ -86,11 +88,11 @@ var Handler = class MouseHandler {
         this._tile = null;
     }
 
-    _onMoving(grabOp, window) {
+    _onMoving(window, grabOp) {
         let active = MainExtension.windowLifecycle.isTilingModeActive(window);
 
         if (active) {
-            this._draw(grabOp, window, this._getTilingLayer());
+            this._draw(window, grabOp, this._getTilingLayer());
         }
         else if (this._lastActive) {
             this._closeTileLayoutPreview();
@@ -110,7 +112,7 @@ var Handler = class MouseHandler {
         return layer;
     }
 
-    _draw(grabOp, window, tileLayer) {
+    _draw(window, grabOp, tileLayer) {
         this._openTileLayoutPreview(tileLayer);
 
         // Calculate the tile the window will move to
