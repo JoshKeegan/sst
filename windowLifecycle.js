@@ -19,6 +19,11 @@ var Lifecycle = class WindowLifecycle {
         this._displaySignals = [];
         this._displaySignals.push(global.display.connect("window_created", 
             (_, window) => this._onCreated(window)));
+        
+        MainExtension.tiles.connectLayoutChanged(this._onLayoutChanged.bind(this));
+
+        // Call on layout changed to auto-tile any existing windows (e.g. after a gnome-shell restart)
+        this._onLayoutChanged();
     }
 
     destroy() {
@@ -36,6 +41,15 @@ var Lifecycle = class WindowLifecycle {
     _onSizeChanged(window) {
         const wRect = window.get_frame_rect();
         log(`window "${window.get_title()}" size changed to width: ${wRect.width}, height: ${wRect.height}`);
+    }
+
+    _onLayoutChanged() {
+        log("layout changed");
+
+        global.workspace_manager.get_active_workspace().list_windows().forEach(window => {
+            window.tile = null;
+            this._autoTile(window);
+        });
     }
 
     /**

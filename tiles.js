@@ -13,6 +13,7 @@ const TileLayoutPreview = Me.imports.tileLayoutPreview.Preview;
 var Tiles = class Tiles {
     constructor() {
         this._previews = null;
+        this._layoutChangedCallbacks = [];
         this._layoutSignalId = global.display.connect('workareas-changed', this._refreshTiles.bind(this));
         this._refreshTiles();
     }
@@ -39,6 +40,14 @@ var Tiles = class Tiles {
     destroy() {
         global.display.disconnect(this._layoutSignalId);
         this._destroyPreviews();
+    }
+
+    /**
+     * Registers a function to be called when the layout changes
+     * @param function callback - function to be called when the layout changes
+     */
+    connectLayoutChanged(callback) {
+        this._layoutChangedCallbacks.push(callback);
     }
 
     _destroyPreviews() {
@@ -76,6 +85,9 @@ var Tiles = class Tiles {
             log(`Layer ${i}`);
             this._allTiles[i].forEach(t => log(t));
         }
+
+        // Layout has been changed
+        this._layoutChangedCallbacks.forEach(fn => fn());
     }
 
     _getMonitorWorkAreas() {
