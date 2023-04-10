@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"encoding/binary"
 	"flag"
 	"fmt"
 	"os"
@@ -11,6 +9,7 @@ import (
 	"github.com/jezek/xgb/xproto"
 	"github.com/jezek/xgbutil"
 	"github.com/jezek/xgbutil/xprop"
+	"xUpdateSizeHints/models"
 )
 
 func main() {
@@ -47,13 +46,12 @@ func run(hexWindowID string) error {
 		return fmt.Errorf("creating X connection: %w", err)
 	}
 
-	prop, err := xprop.GetProperty(x, window, SizeHintsPropName)
+	prop, err := xprop.GetProperty(x, window, models.SizeHintsPropName)
 	if err != nil {
 		return fmt.Errorf("getting size hints property: %w", err)
 	}
-	fmt.Printf("%v\n", prop.Value)
 
-	sizeHints, err := ReadXSizeHints(prop.Value)
+	sizeHints, err := models.ReadXSizeHints(prop.Value)
 	if err != nil {
 		return fmt.Errorf("reading size hints: %w", err)
 	}
@@ -61,26 +59,15 @@ func run(hexWindowID string) error {
 
 	if sizeHints.IsAspectSet() {
 		sizeHints = sizeHints.RemoveAspect()
-		fmt.Println("Removed aspect...")
-
-		// TODO: If all props are writeable then a method should be on XSizeHints to generate bytes
-		// This code is just updating the flags to disable aspect ratio
-		buf := bytes.NewBuffer(make([]byte, 0))
-		err = binary.Write(buf, binary.LittleEndian, sizeHints.flags)
+		data, err := sizeHints.Serialise()
 		if err != nil {
-			return fmt.Errorf("writing flags: %w", err)
+			return fmt.Errorf("serialising size hints: %w", err)
 		}
-		err = binary.Write(buf, binary.LittleEndian, prop.Value[8:])
-		if err != nil {
-			return fmt.Errorf("writing size hints body: %w", err)
-		}
-		changed := buf.Bytes()
 
-		err = xprop.ChangeProp(x, window, prop.Format, SizeHintsPropName, "WM_SIZE_HINTS", changed)
+		err = xprop.ChangeProp(x, window, prop.Format, models.SizeHintsPropName, "WM_SIZE_HINTS", data)
 		if err != nil {
 			return fmt.Errorf("changing size hinty property: %w", err)
 		}
-		fmt.Println("Updated size hints")
 	}
 
 	return nil
