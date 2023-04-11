@@ -63,11 +63,6 @@ var Handler = class MouseHandler {
         
         // Behaviour on leaving a tile
         WindowMover.leave(window, window.tile);
-
-        // Edge case: a window can start & finish being moved without ever moving if you grab the window
-        // and then let go without moving the mouse. Fire _onMoving as soon as the window is grabbed, 
-        // to ensure state per-movement gets updated.
-        this._onMoving(window, grabOp);
     }
 
     _onMoveFinished(window) {
@@ -78,7 +73,7 @@ var Handler = class MouseHandler {
             this._posChangedId = 0;
         }
 
-        if (MainExtension.windowLifecycle.isTilingModeActive(window)) {
+        if (this._tile !== null && MainExtension.windowLifecycle.isTilingModeActive(window)) {
             WindowMover.move(window, this._tile);
         }
 
