@@ -22,6 +22,9 @@
             "title": "^About(\\s.+)?$"
         },
         {
+            "title": "^Open\\s?"
+        },
+        {
             "class": "^Steam$",
             "notTitle": "^Steam$"
         },
