@@ -108,6 +108,16 @@ var Handler = class KeybindHandler {
         // Special case: if moving down and the window is fullscreen, then come out of fullscreen
         if (settingName.startsWith("tile-move-down-") && window.is_fullscreen()) {
             window.unmake_fullscreen();
+
+            // If the window is tiled, also resize & move it to its tile.
+            // This handles it potentially having become split tiled whilst fullscreen (edge case where another window
+            //  is split-tile moved by keyboard shortcut into this windows tile, which can be done in fullscreen with a window
+            //  from another monitor).
+            // Also handles windows that don't return to their exact size on exiting fullscreen, e.g. gnome-terminal
+            //  which makes itself slightly shorter.
+            if (window.tile) {
+                window.move_resize_frame(false, window.tile.x, window.tile.y, window.tile.width, window.tile.height);
+            }
             return;
         }
 
@@ -120,14 +130,6 @@ var Handler = class KeybindHandler {
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
             if (settingName.startsWith("tile-move-up-") && targetTile === null) {
-                // TODO: Should we count a window as having left a tile if it goes fullscreen?
-                // We'd need to re-attach it to the tile when it leaves fullscreen
-                // Needs testing with multi-monitor & moving windows between monitors when one has a 
-                // fullscreen window on it
-
-                // Behaviour on leaving a tile
-                //WindowMover.leave(window, window.tile);
-
                 window.make_fullscreen();
                 return;
             }
