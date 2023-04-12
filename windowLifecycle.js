@@ -40,7 +40,15 @@ var Lifecycle = class WindowLifecycle {
 
     _onSizeChanged(window) {
         const wRect = window.get_frame_rect();
-        log(`window "${window.get_title()}" size changed to width: ${wRect.width}, height: ${wRect.height}`);
+        log(`window "${window.get_title()}" size changed to ${wRect.width}x${wRect.height}`);
+
+        if (window.tile && (window.tile.width !== wRect.width || window.tile.height !== wRect.height)) {
+            log(`window "${window.get_title()}" is tiled so should not have been resized. Changing back to ${window.tile.width}x${window.tile.height} (deferred)`);
+            GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
+                log(`executing deferred resize "${window.get_title()}" to ${window.tile}`);
+                window.move_resize_frame(false, window.tile.x, window.tile.y, window.tile.width, window.tile.height);
+            });
+        }
     }
 
     _onLayoutChanged() {
