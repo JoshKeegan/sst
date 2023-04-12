@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -55,19 +56,30 @@ func run(hexWindowID string) error {
 	if err != nil {
 		return fmt.Errorf("reading size hints: %w", err)
 	}
-	fmt.Printf("Size Hints: %v\nAspect set: %v\n", sizeHints, sizeHints.IsAspectSet())
+	fmt.Printf("Size Hints: %v\nMin Size set: %v\nResize Increment set: %v\nAspect set: %v\n",
+		sizeHints,
+		sizeHints.IsMinSizeSet(),
+		sizeHints.IsResizeIncSet(),
+		sizeHints.IsAspectSet())
 
-	if sizeHints.IsAspectSet() {
-		sizeHints = sizeHints.RemoveAspect()
-		data, err := sizeHints.Serialise()
-		if err != nil {
-			return fmt.Errorf("serialising size hints: %w", err)
-		}
+	sizeHints = sizeHints.
+		RemoveMinSize().
+		RemoveResizeInc().
+		RemoveAspect()
 
+	data, err := sizeHints.Serialise()
+	if err != nil {
+		return fmt.Errorf("serialising size hints: %w", err)
+	}
+
+	if bytes.Equal(data, prop.Value) {
+		fmt.Println("Size hints unchanged")
+	} else {
 		err = xprop.ChangeProp(x, window, prop.Format, models.SizeHintsPropName, "WM_SIZE_HINTS", data)
 		if err != nil {
 			return fmt.Errorf("changing size hinty property: %w", err)
 		}
+		fmt.Println("Size hints updated")
 	}
 
 	return nil

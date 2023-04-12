@@ -63,8 +63,9 @@ var Mover = class WindowMover {
                 - Can this be called on window start, or could it change??
                 - Do we want to restore properties when a window floats?
                     * e.g. Firefox picture in picture maintains aspect ratio during resize, won't without aspect hint
-                - Remove min size to force windows into smallest sub-tiles..?
-                - Remove size increment so windows always fill space (e.g. terminal)..?
+                - Can we prevent a window from being resized by a user?
+                    * if not, should probably set min size to something small rather than removing entirely, 
+                        as currently you can reisze a window to almost nothing
         */
 
         // Remove size hints that could prevent the window from tiling properly

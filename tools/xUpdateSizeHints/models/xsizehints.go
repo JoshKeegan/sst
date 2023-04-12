@@ -197,8 +197,26 @@ func (h XSizeHints) Serialise() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func (h XSizeHints) IsMinSizeSet() bool {
+	return h.flags&PMinSize != 0
+}
+
+func (h XSizeHints) IsResizeIncSet() bool {
+	return h.flags&PResizeInc != 0
+}
+
 func (h XSizeHints) IsAspectSet() bool {
 	return h.flags&PAspect != 0
+}
+
+func (h XSizeHints) RemoveMinSize() XSizeHints {
+	h.flags &= ^PMinSize
+	return h
+}
+
+func (h XSizeHints) RemoveResizeInc() XSizeHints {
+	h.flags &= ^PResizeInc
+	return h
 }
 
 func (h XSizeHints) RemoveAspect() XSizeHints {
