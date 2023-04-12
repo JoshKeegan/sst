@@ -116,7 +116,7 @@ var Handler = class KeybindHandler {
             // Also handles windows that don't return to their exact size on exiting fullscreen, e.g. gnome-terminal
             //  which makes itself slightly shorter.
             if (window.tile) {
-                window.move_resize_frame(false, window.tile.x, window.tile.y, window.tile.width, window.tile.height);
+                WindowMover.moveWithoutUpdatingOtherTiles(window, window.tile);
             }
             return;
         }

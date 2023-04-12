@@ -46,7 +46,7 @@ var Lifecycle = class WindowLifecycle {
             log(`window "${window.get_title()}" is tiled so should not have been resized. Changing back to ${window.tile.width}x${window.tile.height} (deferred)`);
             GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
                 log(`executing deferred resize "${window.get_title()}" to ${window.tile}`);
-                window.move_resize_frame(false, window.tile.x, window.tile.y, window.tile.width, window.tile.height);
+                WindowMover.moveWithoutUpdatingOtherTiles(window, window.tile);
             });
         }
     }
