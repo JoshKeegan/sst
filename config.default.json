@@ -44,6 +44,9 @@
         {
             "class": "^gnome-builder$",
             "title": "^Builder — (Open a Project|Create New Project|Clone Repository|Preferences)|Select Location$"
+        },
+        {
+            "class": "^Update-manager$"
         }
     ]
 }
