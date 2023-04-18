@@ -19,7 +19,12 @@
             "title": "^Preferences(\\s.+)?$"
         },
         {
-            "title": "^About(\\s.+)?$"
+            "title": "^About(\\s.+)?$",
+            "notClass": "^Firefox|Chromium$"
+        },
+        {
+            "class": "^Firefox$",
+            "title": "^(About Mozilla )?Firefox$"
         },
         {
             "title": "^Configure(\\s.+)?$"
