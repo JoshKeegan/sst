@@ -70,7 +70,7 @@ var Mover = class WindowMover {
 
         // TODO: The first move does not fill the space, but moving the window a second time within the same
         // tile will. Needs investigating...
-        log(`Moving window "${window.get_title()} to tile x: ${tile.x} y: ${tile.y} width: ${tile.width} height: ${tile.height}`);
+        log(`Moving window "${window.get_title()}" to tile x: ${tile.x} y: ${tile.y} width: ${tile.width} height: ${tile.height}`);
         window.move_resize_frame(false, tile.x, tile.y, tile.width, tile.height);
     }
 

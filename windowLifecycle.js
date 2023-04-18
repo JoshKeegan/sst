@@ -89,7 +89,8 @@ var Lifecycle = class WindowLifecycle {
             log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
             WindowMover.move(window, tile);
 
-            // Note: unhandled edge case (haven't actually seen it happen)
+            // Bug #29: unhandled edge case, e.g. Firefox about window opens with title "Firefox", then changes to 
+            // "About Mozilla Firefox".
             // If a window appears tileable when opened, it will hit this block of code & auto-tile.
             // If after an async update it should not be tiled (e.g. window title changes to match a
             // floating rule) then it will still have been tiled by this initial tiling, even if the
