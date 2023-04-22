@@ -1,52 +1,64 @@
-"use strict";
 
-const {Clutter, GLib, Meta} = imports.gi;
+import Clutter from "@girs/clutter-12";
+import Gio from "@girs/gio-2.0";
+import GLib from "@girs/glib-2.0";
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const MainExtension = Me.imports.extension;
-const WindowMover = Me.imports.windowMover.Mover;
-const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
-const WindowTileMatcher = Me.imports.windowTileMatcher.Matcher;
+import KeybindHandler from "./keybindHandler";
+import TileRelationshipCalculator from "./tileRelationshipCalculator";
+import Tiles from "./tiles";
+import TiledWindow from "./tiledWindow";
+import WindowMover from "./windowMover";
+import WindowTileMatcher from "./windowTileMatcher"
+import WindowTileable from "./windowTileable";
 
-var Lifecycle = class WindowLifecycle {
-    constructor(windowTileable) {
-        this._windowTileable = windowTileable;
-        this._settings = {
-            tileByDefault: MainExtension.settings.get_boolean("tile-by-default"),
+export default class WindowLifecycle {
+    private windowTileable: WindowTileable;
+    private tiles: Tiles;
+    private keybindHandler: KeybindHandler;
+    private settings: {
+        tileByDefault: boolean
+    };
+    private displaySignals: number[] = [];
+
+    constructor(settings: Gio.Settings, windowTileable: WindowTileable, tiles: Tiles, keybindHandler: KeybindHandler) {
+        this.windowTileable = windowTileable;
+        this.tiles = tiles;
+        this.keybindHandler = keybindHandler;
+        this.settings = {
+            tileByDefault: settings.get_boolean("tile-by-default"),
         };
 
-        this._displaySignals = [];
-        this._displaySignals.push(global.display.connect("window_created", 
-            (_, window) => this._onCreated(window)));
+        this.displaySignals.push(global.display.connect("window_created", 
+            (_, window: TiledWindow) => this._onCreated(window)));
         
-        MainExtension.tiles.connectLayoutChanged(this._onLayoutChanged.bind(this));
+        tiles.connectLayoutChanged(this._onLayoutChanged.bind(this));
 
         // Call on layout changed to auto-tile any existing windows (e.g. after a gnome-shell restart)
         this._onLayoutChanged();
     }
 
     destroy() {
-        this._displaySignals.forEach(sId => global.display.disconnect(sId));
-        this._windowTileable = null;
+        this.displaySignals.forEach(sId => global.display.disconnect(sId));
     }
 
-    _onCreated(window) {
+    _onCreated(window: TiledWindow) {
         log(`created: ${window.get_title()}`);
         window.tile = null;
         this._autoTile(window);
         window.connect("size-changed", this._onSizeChanged.bind(this, window));
     }
 
-    _onSizeChanged(window) {
+    _onSizeChanged(window: TiledWindow) {
         const wRect = window.get_frame_rect();
         log(`window "${window.get_title()}" size changed to ${wRect.width}x${wRect.height}`);
 
-        if (window.tile && (window.tile.width !== wRect.width || window.tile.height !== wRect.height)) {
+        if (window.tile !== null && (window.tile.width !== wRect.width || window.tile.height !== wRect.height)) {
             log(`window "${window.get_title()}" is tiled so should not have been resized. Changing back to ${window.tile.width}x${window.tile.height} (deferred)`);
+            const tile = window.tile;
             GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
                 log(`executing deferred resize "${window.get_title()}" to ${window.tile}`);
-                WindowMover.moveWithoutUpdatingOtherTiles(window, window.tile);
+                WindowMover.moveWithoutUpdatingOtherTiles(window, tile);
+                return false;
             });
         }
     }
@@ -58,10 +70,13 @@ var Lifecycle = class WindowLifecycle {
         const numWorkspaces = global.workspace_manager.get_n_workspaces();
         for (let i = 0; i < numWorkspaces; i++) {
             const ws = global.workspace_manager.get_workspace_by_index(i);
-            ws.list_windows().forEach(window => {
-                window.tile = null;
-                this._autoTile(window);
-            });
+            if (ws !== null) {
+                ws.list_windows().forEach(metaWindow => {
+                    const window = metaWindow as TiledWindow;
+                    window.tile = null;
+                    this._autoTile(window);
+                });
+            }
         }
     }
 
@@ -71,23 +86,27 @@ var Lifecycle = class WindowLifecycle {
      * Auto-tiles the window to the tile that its center is within (allows for some movement, 
      * it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
      * This works because windows generally re-open in their previous position(ish).
-     * @param Meta.Window window 
      */
-    _autoTile(window) {
+    _autoTile(window: TiledWindow) {
         // If tile by default is off, or the window's fixed properties (ones that cannot be updated by the app async) 
         //  mean it cannot be tiled then this window will never get auto-tiled.
-        if (!this._settings.tileByDefault || !this._windowTileable.isTileableFixedProps(window)) {
+        if (!this.settings.tileByDefault || !this.windowTileable.isTileableFixedProps(window)) {
             return;
         }
 
-        const rectToString = r => `x: ${r.x}\ty: ${r.y}\twidth: ${r.width}\theight: ${r.height}`;
+        const rectToString = (r: Rect) => `x: ${r.x}\ty: ${r.y}\twidth: ${r.width}\theight: ${r.height}`;
         log(`Initial rect\t${rectToString(window.get_frame_rect())} for "${window.get_title()}"`);
 
         // If the window is tileable right now, tile it. If the window moves itself async, we will need to re-tile it though.
-        if (this._windowTileable.isTileable(window)) {
+        if (this.windowTileable.isTileable(window)) {
             const tile = this._autoTileSelectTile(window);
-            log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
-            WindowMover.move(window, tile);
+            if (tile !== null) {
+                log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
+                WindowMover.move(window, tile);
+            }
+            else {
+                log(`Unable to find a tile to auto-tile window "${window.get_title()}" to`);
+            }
 
             // Bug #29: unhandled edge case, e.g. Firefox about window opens with title "Firefox", then changes to 
             // "About Mozilla Firefox".
@@ -106,19 +125,25 @@ var Lifecycle = class WindowLifecycle {
         // cancelled after a small delay.
         let posChangedSignal = window.connect("position-changed", w => {
             log(`pos changed: ${rectToString(w.get_frame_rect())}`);
-            if (!this._windowTileable.isTileable(window)) {
+            if (!this.windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
                 WindowMover.leave(window, window.tile);
                 return;
             }
             const tile = this._autoTileSelectTile(window);
-            log(`Auto-tiling "${window.get_title()}" to ${tile} (deferred)`);
+            if (tile !== null) {
+                log(`Auto-tiling "${window.get_title()}" to ${tile} (deferred)`);
             
-            GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
-                log(`executing deferred auto-tile of "${window.get_title()}" to ${tile}`);
-                WindowMover.leave(window, window.tile);
-                WindowMover.move(window, tile);
-            });
+                GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
+                    log(`executing deferred auto-tile of "${window.get_title()}" to ${tile}`);
+                    WindowMover.leave(window, window.tile);
+                    WindowMover.move(window, tile);
+                    return false;
+                });
+            }
+            else {
+                log(`Unable to find a tile to auto-tile window "${window.get_title()}" to`);
+            }
         });
 
         // After a small delay, clear the position changed event handler
@@ -142,41 +167,47 @@ var Lifecycle = class WindowLifecycle {
             // is not a pleasant UX, but it is here to ensure all windows get handled. Anything relying on this
             // should be looked into as there may be other events we can listen to (e.g. window resize) to trigger 
             // the auto-tile earlier.
-            if (!this._windowTileable.isTileable(window)) {
+            if (!this.windowTileable.isTileable(window)) {
                 log(`Window "${window.get_title()}" is not auto-tileable`)
                 WindowMover.leave(window, window.tile);
-                return;
+                return false;
             }
             const tile = this._autoTileSelectTile(window);
+            if (tile === null) {
+                log(`Unable to find a tile to auto-tile window "${window.get_title()}" to`);
+                return false;
+            }
             log(`Auto-tiling "${window.get_title()}" to ${tile}`);
             WindowMover.leave(window, window.tile);
             WindowMover.move(window, tile);
+            
+            return false;
         });
     }
 
-    _autoTileSelectTile(window) {
+    _autoTileSelectTile(window: TiledWindow) {
         const wRect = window.get_frame_rect();
 
         // First see if the window matches a tile (any layer)
         // This is mainly to handle gnome-shell restarts
-        const tile = WindowTileMatcher.matchTile(MainExtension.tiles.all, wRect);
+        const tile = WindowTileMatcher.matchTile(this.tiles.all, wRect);
         if (tile !== null) {
             return tile;
         }
 
         // If not, find the closest tile on the top layer & put it there
-        return TileRelationshipCalculator.findClosest(MainExtension.tiles.getAllTiles(0), wRect);
+        return TileRelationshipCalculator.findClosest(this.tiles.getAllTiles(0), wRect);
     }
 
-    isTilingModeActive(window) {
+    isTilingModeActive(window: TiledWindow) {
         // If floating by default, control tiling entirely based on user-input. Assumes that if the user asks 
         //  for a window to be tiled, they want it tiling regardless of whether we think it should be.
-        if (!this._settings.tileByDefault) {
+        if (!this.settings.tileByDefault) {
             return this._isTilingKeyPressed();
         }
 
         // Otherwise tiling is the default, if we think the window should be floated, float it.
-        if (!this._windowTileable.isTileable(window)) {
+        if (!this.windowTileable.isTileable(window)) {
             return false;
         }
         // Window can be tiled, check the user isn't asking for it to be floated
@@ -185,10 +216,10 @@ var Lifecycle = class WindowLifecycle {
 
     _isTilingKeyPressed() {
         // TODO: Make key configurable
-        return MainExtension.keybindHandler.isModKeyPressed(Clutter.ModifierType.CONTROL_MASK);
+        return this.keybindHandler.isModKeyPressed(Clutter.ModifierType.CONTROL_MASK);
     }
 
-    _isWindowOpen(windowId) {
+    _isWindowOpen(windowId: number) {
         const windows = global.workspace_manager.get_active_workspace().list_windows();
         for (let i = 0; i < windows.length; i++) {
             if (windows[i].get_id() === windowId) {

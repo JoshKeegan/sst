@@ -2,3 +2,4 @@ schemas/gschemas.compiled
 .idea
 /tools/bin
 /node_modules
+yarn-error.log

@@ -1,4 +1,4 @@
-"use strict"
+import Gio from "@girs/gio-2.0"
 
 const ExtensionUtils = imports.misc.extensionUtils;
 
@@ -8,10 +8,10 @@ const ExtensionUtils = imports.misc.extensionUtils;
  * When developing, if you find a collision, you can find the config with gsettings, e.g.:
  *  # gsettings list-recursively | grep "<Super><Alt>Left"
  */
-var Manager = class GnomeSettingsManager {
-    constructor(sstSettings) {
-        this._resetFns = [];
+export default class GnomeSettingsManager {
+    private _resetFns: (() => void)[] = [];
 
+    constructor(sstSettings: Gio.Settings) {
         // Fail gracefully: failure to update one setting shouldn't leave all of the others
         //  in a modified state
         try {
@@ -84,7 +84,7 @@ var Manager = class GnomeSettingsManager {
                 logError(e, "Failed to reset a GNOME setting");
             }
         });
-        this._resetFns = null;
+        this._resetFns = [];
     }
 
     /**
@@ -94,7 +94,7 @@ var Manager = class GnomeSettingsManager {
      * @param string[] values - values within the array to remove
      * @returns function to return key back to its original state
      */
-    settingsRemoveFromStrv(settings, key, values) {
+    settingsRemoveFromStrv(settings: Gio.Settings, key: string, values: string[]): () => void {
         if (!settings.settings_schema.has_key(key)) {
             log(`${settings.settings_schema.get_id()} does not contain key ${key}, skipping updating it`);
             return () => {  };
@@ -117,7 +117,7 @@ var Manager = class GnomeSettingsManager {
      * @param string[] values - values to add to the array
      * @returns function to return key back to its original state
      */
-    settingsAddToStrv(settings, key, values) {
+    settingsAddToStrv(settings: Gio.Settings, key: string, values: string[]): () => void {
         if (!settings.settings_schema.has_key(key)) {
             log(`${settings.settings_schema.get_id()} does not contain key ${key}, skipping updating it`);
             return () => {  };
@@ -140,7 +140,7 @@ var Manager = class GnomeSettingsManager {
      * @param bool value 
      * @returns function to return key back to its original state
      */
-    settingsSetBool(settings, key, value) {
+    settingsSetBool(settings: Gio.Settings, key: string, value: boolean): () => void {
         const orig = settings.get_boolean(key);
         log(`Updating ${key} setting. Original ${orig}, now ${value}`);
         settings.set_boolean(key, value);
@@ -158,7 +158,7 @@ var Manager = class GnomeSettingsManager {
      * @param string[] value
      * @returns function to return key back to its original state 
      */
-    settingsSetStrv(settings, key, value) {
+    settingsSetStrv(settings: Gio.Settings, key: string, value: string[]): () => void {
         const orig = settings.get_strv(key);
         log(`Updating ${key} setting. Original '${orig}', now '${value}'`);
         settings.set_strv(key, value);
@@ -169,7 +169,7 @@ var Manager = class GnomeSettingsManager {
         }
     }
 
-    logRevertSetting(key, orig) {
+    logRevertSetting(key: string, orig: any) {
         log(`Returning setting ${key} back to its original value '${orig}'`);
     }
 }

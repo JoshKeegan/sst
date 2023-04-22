@@ -1,12 +1,12 @@
-"use strict";
+import Tile from "./tile";
 
-var Matcher = class WindowTileMatcher {
+export default class WindowTileMatcher {
     /**
      * Finds which tile the window is tiled to. Returns null if floating/not tiled
      * @param tiles array of tiles to consider (should be all tiles in the current layer)
      * @param wRect rectangle of the current window
      */
-    static matchTile(tiles, wRect) {
+    static matchTile(tiles: Tile[], wRect: Rect) {
         log(`window x: ${wRect.x} y: ${wRect.y} w: ${wRect.width} h: ${wRect.height}`);
         log(`tile x: ${tiles[0].x} y: ${tiles[0].y} w: ${tiles[0].width} h: ${tiles[0].height}`);
 
@@ -14,7 +14,7 @@ var Matcher = class WindowTileMatcher {
         return tile ? tile : null;
     }
     
-    static isWindowInTile(tile, wRect) {
+    static isWindowInTile(tile: Tile, wRect: Rect) {
         const FUZZY_DIMS_MULT = 0.98;
 
         return tile.x === wRect.x &&

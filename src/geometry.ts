@@ -1,12 +1,8 @@
-"use strict";
-
-var Geometry = class Geometry {
+export default class Geometry {
     /**
      * Finds the euclidean distance between the closest corners of two rectangles
-     * @param {x, y, width, height} a 
-     * @param {x, y, width, height} b 
      */
-    static euclideanDistanceBetweenClosestCorners(a, b) {
+    static euclideanDistanceBetweenClosestCorners(a: Rect, b: Rect): number {
         return this._euclideanDistanceBeteenClosestPoints([
             this._rectTopLeft(a),
             this._rectTopRight(a),
@@ -23,10 +19,8 @@ var Geometry = class Geometry {
 
     /**
      * Calculates the euclidean distance between two points
-     * @param {x, y} a 
-     * @param {x, y} b 
      */
-    static euclideanDistance(a, b) {
+    static euclideanDistance(a: Point, b: Point): number {
         const w = Math.abs(b.x - a.x);
         const h = Math.abs(b.y - a.y);
         return Math.sqrt((w * w) + (h * h));
@@ -34,10 +28,8 @@ var Geometry = class Geometry {
 
     /**
      * Does a rectange contain a point
-     * @param {x, y, width, height} rect 
-     * @param {x, y} point 
      */
-    static contains (rect, point) {
+    static contains (rect: Rect, point: Point): boolean {
         return rect.x <= point.x &&
             rect.x + rect.width > point.x &&
             rect.y <= point.y &&
@@ -46,16 +38,15 @@ var Geometry = class Geometry {
 
     /**
      * Finds the center of a rectangle
-     * @param {x, y, width, height} rect 
      */
-    static center (rect) {
+    static center (rect: Rect): Point {
         return {
             x: rect.x + Math.floor(rect.width / 2),
             y: rect.y + Math.floor(rect.height / 2),
         };
     }
     
-    static _euclideanDistanceBeteenClosestPoints(a, b) {
+    static _euclideanDistanceBeteenClosestPoints(a: Point[], b: Point[]): number {
         let dBest = Infinity;
         for (let i = 0; i < a.length; i++) {
             for (let j = 0; j < b.length; j++) {
@@ -65,25 +56,25 @@ var Geometry = class Geometry {
         return dBest;
     }
     
-    static _rectTopLeft(r) {
+    static _rectTopLeft(r: Rect): Point {
         return r;
     }
 
-    static _rectTopRight(r) {
+    static _rectTopRight(r: Rect): Point {
         return {
             x: r.x + r.width - 1,
             y: r.y,
         };
     }
 
-    static _rectBottomRight(r) {
+    static _rectBottomRight(r: Rect): Point {
         return {
             x: r.x + r.width - 1,
             y: r.y + r.height - 1,
         };
     }
 
-    static _rectBottomLeft(r) {
+    static _rectBottomLeft(r: Rect): Point {
         return {
             x: r.x,
             y: r.y + r.height - 1,

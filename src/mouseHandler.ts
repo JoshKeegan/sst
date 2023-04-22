@@ -1,17 +1,19 @@
-"use strict";
+import Meta from "@girs/meta-12";
+
+import Geometry from "./geometry";
+import KeybindHandler from "./keybindHandler";
+import Tile from "./tile";
+import TiledWindow from "./tiledWindow";
+import TileLayoutPreview from "./tileLayoutPreview";
+import Tiles from "./tiles";
+import WindowLifecycle from "./windowLifecycle";
+import WindowMover from "./windowMover";
+
 
 const {windowManager} = imports.ui;
-const {Clutter, GLib, Meta} = imports.gi;
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const MainExtension = Me.imports.extension;
-const Tile = Me.imports.tile.Tile;
-const Geometry = Me.imports.geometry.Geometry;
-const WindowMover = Me.imports.windowMover.Mover;
-const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
+const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
 
 // Use values rather than constants e.g. CLUTTER_MOD5_MASK as they aren't all defined
 // in older versions.
@@ -21,32 +23,43 @@ const TILING_LAYER_KEY_MASKS = [
     1 << 6, // Super (left or right)
 ];
 
-var Handler = class MouseHandler {
-    constructor() {
-        const isMoving = grabOp => [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
+function wrapGrabOpCallback(callback: (window: TiledWindow, grabOp: Meta.GrabOp) => void) {
+    return (...params: any[]) => {
+        // pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
+        let [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
+        callback(window as TiledWindow, grabOp as Meta.GrabOp);
+    };
+}
 
-        this._displaySignals = [];
-        this._displaySignals.push(global.display.connect("grab-op-begin", (...params) => {
-            // pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
-            const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
-            if (window && isMoving(grabOp))
-                this._onMoveStarted(window, grabOp);
-        }));
-        this._displaySignals.push(global.display.connect("grab-op-end", (...params) => {
-            // pre GNOME 40 the signal emitter was added as the first and second param, fixed with !1734 in mutter
-            const [window, grabOp] = [params[params.length - 2], params[params.length - 1]];
-            if (window && isMoving(grabOp))
+export default class MouseHandler {
+    private windowLifecycle: WindowLifecycle;
+    private tiles: Tiles;
+    private keybindHandler: KeybindHandler;
+    private _displaySignals: number[] = [];
+    private _posChangedId = 0;
+    private _lastActive = false;
+    private _tileLayoutPreview: TileLayoutPreview | null = null;
+    private _tilePreview = new windowManager.TilePreview();
+    private _tile: Tile | null = null;
+
+    constructor(windowLifecycle: WindowLifecycle, tiles: Tiles, keybindHandler: KeybindHandler) {
+        this.windowLifecycle = windowLifecycle;
+        this.tiles = tiles;
+        this.keybindHandler = keybindHandler;
+
+        const isMoving = (grabOp: Meta.GrabOp) => 
+            [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
+
+        this._displaySignals.push(global.display.connect("grab-op-begin", wrapGrabOpCallback((window, grabOp) => {
+            if (window !== null && isMoving(grabOp)) {
+                this._onMoveStarted(window);
+            }
+        })));
+        this._displaySignals.push(global.display.connect("grab-op-end", wrapGrabOpCallback((window, grabOp) => {
+            if (window !== null && isMoving(grabOp)) {
                 this._onMoveFinished(window);
-        }));
-
-        this._posChangedId = 0;
-        this._lastActive = false;
-
-        this._tileLayoutPreview = null;
-        this._tilePreview = new windowManager.TilePreview();
-
-        // Tile (composed of rect:Meta.Rectangle which can be passed to gnome-shell), which the grabbed window will tile to
-        this._tile = null;
+            }
+        })));
     }
 
     destroy() {
@@ -55,17 +68,17 @@ var Handler = class MouseHandler {
         this._tilePreview = null;
     }
 
-    _onMoveStarted(window, grabOp) {
+    _onMoveStarted(window: TiledWindow) {
         log("sst: move started");
 
         this._posChangedId = window.connect("position-changed",
-            this._onMoving.bind(this, window, grabOp));
+            this._onMoving.bind(this, window));
         
         // Behaviour on leaving a tile
         WindowMover.leave(window, window.tile);
     }
 
-    _onMoveFinished(window) {
+    _onMoveFinished(window: TiledWindow) {
         log("sst: moved finished");
 
         if (this._posChangedId) {
@@ -73,7 +86,7 @@ var Handler = class MouseHandler {
             this._posChangedId = 0;
         }
 
-        if (this._tile !== null && MainExtension.windowLifecycle.isTilingModeActive(window)) {
+        if (this._tile !== null && this.windowLifecycle.isTilingModeActive(window)) {
             WindowMover.move(window, this._tile);
         }
 
@@ -83,11 +96,11 @@ var Handler = class MouseHandler {
         this._tile = null;
     }
 
-    _onMoving(window, grabOp) {
-        let active = MainExtension.windowLifecycle.isTilingModeActive(window);
+    _onMoving(window: TiledWindow) {
+        let active = this.windowLifecycle.isTilingModeActive(window);
 
         if (active) {
-            this._draw(window, grabOp, this._getTilingLayer());
+            this._draw(window, this._getTilingLayer());
         }
         else if (this._lastActive) {
             this._closeTileLayoutPreview();
@@ -99,25 +112,31 @@ var Handler = class MouseHandler {
 
     _getTilingLayer() {
         let layer = 0;
-        for (let i = 0; i < TILING_LAYER_KEY_MASKS.length && layer < MainExtension.tiles.numLayers - 1; i++) {
-            if (MainExtension.keybindHandler.isModKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
+        for (let i = 0; i < TILING_LAYER_KEY_MASKS.length && layer < this.tiles.numLayers - 1; i++) {
+            if (this.keybindHandler.isModKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
                 layer++;
             }
         }
         return layer;
     }
 
-    _draw(window, grabOp, tileLayer) {
+    _draw(window: TiledWindow, tileLayer: number) {
         this._openTileLayoutPreview(tileLayer);
 
         // Calculate the tile the window will move to
         const monitorIdx = global.display.get_current_monitor();
-        const tiles = MainExtension.tiles.getTiles(tileLayer, monitorIdx);
+        const tiles = this.tiles.getTiles(tileLayer, monitorIdx);
         const pointer = global.get_pointer();
         const tile = this._selectTile(tiles, { x: pointer[0], y: pointer[1] });
 
+        // If the window wouldn't currently get tiled, close the preview
+        if (tile === null) {
+            this._undraw();
+            return;
+        }
+
         // Draw the preview of the tile the window will move to
-        if (!tile || !this._tile || !tile.rect.equal(this._tile.rect)) {
+        if (!this._tile || !tile.rect.equal(this._tile.rect)) {
             this._tilePreview.open(window, tile.rect, monitorIdx);
             this._tile = tile;
         }
@@ -128,8 +147,11 @@ var Handler = class MouseHandler {
         this._tile = null;
     }
 
-    _selectTile(tiles, ptr) {
+    _selectTile(tiles: Tile[], ptr: Point) {
         const tile = tiles.find(t =>  Geometry.contains(t, ptr));
+        if (tile === undefined) {
+            return null;
+        }
         
         // Combined tiling feature: if close to an edge of the tile, the target area 
         //  can be combined with the adjacent tile, if both tiles are on the same monitor.
@@ -168,8 +190,8 @@ var Handler = class MouseHandler {
         return combinedTile;
     }
 
-    _openTileLayoutPreview(tileLayer) {
-        const tileLayoutPreview = MainExtension.tiles.getTileLayoutPreview(tileLayer);
+    _openTileLayoutPreview(tileLayer: number) {
+        const tileLayoutPreview = this.tiles.getTileLayoutPreview(tileLayer);
 
         // If there is already a tile layout being previewed, and it is not the one for this
         //  layer, close the old one first.

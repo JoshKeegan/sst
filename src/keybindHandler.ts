@@ -1,48 +1,61 @@
-"use strict";
+import Clutter from "@girs/clutter-12";
+import Gio from "@girs/gio-2.0"
+import Meta from "@girs/meta-12"
+import Shell from "@girs/shell-12"
 
-const {main} = imports.ui;
-const {Gio, Meta, Shell} = imports.gi;
+import Tile from "./tile";
+import TiledWindow from "./tiledWindow";
+import Tiles from "./tiles";
+import TileRelationshipCalculator from "./tileRelationshipCalculator";
+import WindowMover from "./windowMover";
 
 const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const MainExtension = Me.imports.extension;
-const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
-const WindowMover = Me.imports.windowMover.Mover;
+const {main} = imports.ui;
+
+interface TileMoveKey {
+    nextTileSelector: (t: Tile) => Tile | null,
+    floatingTileSelector: (tiles: Tile[], rect: Rect) => Tile | null,
+    tileLayer: number,
+}
 
 const tileMoveKeys = function(){
-    let keys = [];
+    const keys = new Map<string, TileMoveKey>();
     for (let i = 0; i < 3; i++) {
-        keys[`tile-move-up-layer-${i}`] = {
+        keys.set(`tile-move-up-layer-${i}`, {
             nextTileSelector: t => t.relationships.up,
             floatingTileSelector: TileRelationshipCalculator.findUp,
             tileLayer: i,
-        };
-        keys[`tile-move-down-layer-${i}`] = {
+        });
+        keys.set(`tile-move-down-layer-${i}`, {
             nextTileSelector: t => t.relationships.down,
             floatingTileSelector: TileRelationshipCalculator.findDown,
             tileLayer: i,
-        };
-        keys[`tile-move-left-layer-${i}`] = {
+        });
+        keys.set(`tile-move-left-layer-${i}`, {
             nextTileSelector: t => t.relationships.left,
             floatingTileSelector: TileRelationshipCalculator.findLeft,
             tileLayer: i,
-        };
-        keys[`tile-move-right-layer-${i}`] = {
+        });
+        keys.set(`tile-move-right-layer-${i}`, {
             nextTileSelector: t => t.relationships.right,
             floatingTileSelector: TileRelationshipCalculator.findRight,
             tileLayer: i,
-        };
+        });
     }
     return keys;
 }();
 
-var Handler = class KeybindHandler {
-    constructor(settings) {
-        const defaultTerminalSettings = ExtensionUtils.getSettings("org.gnome.desktop.default-applications.terminal");
-        const execTerminal = defaultTerminalSettings.get_string("exec");
+export default class KeybindHandler {
+    private launchKeybinds: string[];
+    private tiles: Tiles;
 
-        for (const settingName in tileMoveKeys) {
-            const handlers = tileMoveKeys[settingName];
+    constructor(settings: Gio.Settings, tiles: Tiles) {
+        this.tiles = tiles;
+
+        const defaultTerminalSettings = ExtensionUtils.getSettings("org.gnome.desktop.default-applications.terminal");
+        const execTerminal = defaultTerminalSettings.get_string("exec") ?? "gnome-terminal";
+
+        for (const [settingName, movement] of tileMoveKeys) {
             main.wm.addKeybinding(settingName, 
                 settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
@@ -50,9 +63,7 @@ var Handler = class KeybindHandler {
                 this._onTileMoveKeyPressed.bind(
                     this, 
                     settingName, 
-                    handlers.nextTileSelector, 
-                    handlers.floatingTileSelector, 
-                    handlers.tileLayer));
+                    movement));
         }
         main.wm.addKeybinding("new-window",
             settings,
@@ -60,17 +71,20 @@ var Handler = class KeybindHandler {
                 Shell.ActionMode.NORMAL,
                 this._onNewWindowKeyPressed.bind(this));
 
-        this._launchKeybinds = [];
+        this.launchKeybinds = [];
         this._addLaunchKeybinding("launch-term", settings, execTerminal, false);
         this._addLaunchKeybinding("launch-calc", settings, "gnome-calculator", false);
-        this._addLaunchKeybinding("launch-resource-monitor", settings, 
-            () => settings.get_string("resource-monitor-cmd"), 
+        this._addLaunchKeybinding("launch-resource-monitor", settings,
+            () => settings.get_string("resource-monitor-cmd") ?? "gnome-system-monitor",
             () => settings.get_boolean("resource-monitor-needs-terminal"));
         this._addLaunchKeybinding("launch-files", settings, "nautilus", false);
     }
     
-    _addLaunchKeybinding(settingName, settings, cmd, needsTerminal) {
-        this._launchKeybinds.push(settingName);
+    _addLaunchKeybinding(settingName: string, settings: Gio.Settings, 
+        cmd: string | (() => string), 
+        needsTerminal: boolean | (() => boolean)
+        ) {
+        this.launchKeybinds.push(settingName);
         main.wm.addKeybinding(settingName,
             settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
@@ -87,23 +101,27 @@ var Handler = class KeybindHandler {
     }
 
     destroy() {
-        tileMoveKeys.concat(this._launchKeybinds).
-            forEach(settingName => main.wm.removeKeybinding(settingName));
+        for (const settingName in tileMoveKeys) {
+            main.wm.removeKeybinding(settingName);
+        }
+        this.launchKeybinds.forEach(settingName => main.wm.removeKeybinding(settingName));
         main.wm.removeKeybinding("new-window");
     }
 
-    isModKeyPressed(modMask) {
+    isModKeyPressed(modMask: Clutter.ModifierType) {
         const modifiers = global.get_pointer()[2];
         return (modifiers & modMask) !== 0;
     }
 
-    _onTileMoveKeyPressed(settingName, nextTileSelector, floatingTileSelector, tileLayer) {
+    _onTileMoveKeyPressed(settingName: string, movement: TileMoveKey) {
         log("Pressed " + settingName);
 
-        const window = global.display.focus_window;
-        if (!window) {
+        const metaWindow = global.display.focus_window;
+        if (metaWindow == null) {
+            log("Tile move key pressed, but no window is currently focussed");
             return;
         }
+        const window = metaWindow as TiledWindow;
 
         // Special case: if moving down and the window is fullscreen, then come out of fullscreen
         if (settingName.startsWith("tile-move-down-") && window.is_fullscreen()) {
@@ -115,18 +133,18 @@ var Handler = class KeybindHandler {
             //  from another monitor).
             // Also handles windows that don't return to their exact size on exiting fullscreen, e.g. gnome-terminal
             //  which makes itself slightly shorter.
-            if (window.tile) {
+            if (window.tile !== null) {
                 WindowMover.moveWithoutUpdatingOtherTiles(window, window.tile);
             }
             return;
         }
 
         // If the current window is already tiled in the same layer we're interested in
-        const tiles = MainExtension.tiles.getAllTiles(tileLayer);
+        const tiles = this.tiles.getAllTiles(movement.tileLayer);
         let targetTile = null;
         if (window.tile !== null && tiles.includes(window.tile)) {
             log(`Currently in tile, moving ${settingName} relative to it`);
-            targetTile = nextTileSelector(window.tile);
+            targetTile = movement.nextTileSelector(window.tile);
 
             // Special case: if moving up but there is no tile above this one, go fullscreen
             if (settingName.startsWith("tile-move-up-") && targetTile === null) {
@@ -139,7 +157,7 @@ var Handler = class KeybindHandler {
             log(`Window is floating, searching for best tile ${settingName}`);
             // Find the closest tile in the direction we want to move in
             const wRect = window.get_frame_rect();
-            targetTile = floatingTileSelector(tiles, wRect);
+            targetTile = movement.floatingTileSelector(tiles, wRect);
 
             // If there is no tile in that direction, find the tile with the largest intersection area
             if (targetTile === null) {
@@ -187,7 +205,7 @@ var Handler = class KeybindHandler {
         app.open_new_window(-1);
     }
 
-    _findApp(window) {
+    _findApp(window: Meta.Window) {
         const windowId = window.get_id();
         const appSys = Shell.AppSystem.get_default();
         const runningApps = appSys.get_running();
@@ -203,7 +221,7 @@ var Handler = class KeybindHandler {
         return null;
     }
 
-    _launchCmd(cmd, needsTerminal) {
+    _launchCmd(cmd: string, needsTerminal: boolean) {
         let flags = Gio.AppInfoCreateFlags.SUPPORTS_STARTUP_NOTIFICATION;
         if (needsTerminal) {
             flags = flags | Gio.AppInfoCreateFlags.NEEDS_TERMINAL;

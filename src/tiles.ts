@@ -1,40 +1,43 @@
-"use strict";
+import Meta from "@girs/meta-12";
 
-const {Meta} = imports.gi;
-const {layout} = imports.ui;
+import TileRelationshipCalculator from "./tileRelationshipCalculator";
+import Tile from "./tile";
+import TileLayoutPreview from "./tileLayoutPreview";
+
 const Main = imports.ui.main;
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
-const TileRelationshipCalculator = Me.imports.tileRelationshipCalculator.Calculator;
-const Tile = Me.imports.tile.Tile;
-const TileLayoutPreview = Me.imports.tileLayoutPreview.Preview;
+export default class Tiles {
+    private _previews: TileLayoutPreview[] = [];
+    private _layoutChangedCallbacks: (() => void)[] = [];
+    private _layoutSignalId: number;
 
-var Tiles = class Tiles {
+    /** tileLayer => monitorIdx => [Tile] */
+    private _tilesByMonitor: Tile[][][] = [];
+    /** tileLayer => [Tile] */
+    private _allTiles: Tile[][] = [];
+
     constructor() {
-        this._previews = null;
-        this._layoutChangedCallbacks = [];
         this._layoutSignalId = global.display.connect('workareas-changed', this._refreshTiles.bind(this));
         this._refreshTiles();
     }
 
     get numLayers() { return this._tilesByMonitor.length; }
 
-    getTiles(tileLayer, monitorIdx) {
+    getTiles(tileLayer: number, monitorIdx: number) {
         return this._tilesByMonitor[tileLayer][monitorIdx];
     }
 
-    getAllTiles(tileLayer) {
+    getAllTiles(tileLayer: number) {
         return this._allTiles[tileLayer];
     }
 
-    getTileLayoutPreview(tileLayer) {
+    getTileLayoutPreview(tileLayer: number) {
         return this._previews[tileLayer];
     }
 
     // TODO: Needn't be calculated at runtime
     get all() {
-        return [].concat(...this._allTiles);
+        return Array<Tile>().concat(...this._allTiles);
     }
 
     destroy() {
@@ -46,17 +49,13 @@ var Tiles = class Tiles {
      * Registers a function to be called when the layout changes
      * @param function callback - function to be called when the layout changes
      */
-    connectLayoutChanged(callback) {
+    connectLayoutChanged(callback: () => void) {
         this._layoutChangedCallbacks.push(callback);
     }
 
     _destroyPreviews() {
-        if(this._previews === null) {
-            return;
-        }
         this._previews.forEach(p => p.destroy());
-
-        this._previews = null;
+        this._previews = [];
     }
 
     _refreshTiles() {
@@ -68,15 +67,12 @@ var Tiles = class Tiles {
 
         const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
 
-        // tileLayer => monitorIdx => [{ x, y, width, height }]
-        this._tilesByMonitor = new Array(3);
+        this._tilesByMonitor = new Array<Tile[][]>(3);
         this._tilesByMonitor[0] = this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon);
         this._tilesByMonitor[1] = this._tilesByMonitor[0].map(this._splitLayerTileAreas);
         this._tilesByMonitor[2] = this._tilesByMonitor[1].map(this._splitLayerTileAreas);
 
-        // tileLayer => [{ x, y, width, height }]
         this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
-
         this._previews = this._allTiles.map(tiles => new TileLayoutPreview(tiles));
 
         // Log tiles for debugging
@@ -93,9 +89,12 @@ var Tiles = class Tiles {
     _getMonitorWorkAreas() {
         // Assume that all workspaces will be the same & just use the first.
         //  gnome-shell makes the same assumption internally so seems safe enough for now...
-        let ws = global.workspace_manager.get_workspace_by_index(0);
+        const ws = global.workspace_manager.get_workspace_by_index(0);
+        if (ws === null) {
+            throw new Error("Workspace index 0 not found");
+        }
 
-        const workAreas = new Array(Main.layoutManager.monitors.length);
+        const workAreas = new Array<Meta.Rectangle>(Main.layoutManager.monitors.length);
         for (let i = 0; i < workAreas.length; i++) {
             workAreas[i] = ws.get_work_area_for_monitor(i);
             log("work area monitor idx: " + i + " w: " + workAreas[i].width + " h: " + workAreas[i].height);
@@ -103,26 +102,27 @@ var Tiles = class Tiles {
         return workAreas;
     }
 
-    _generateTilesByMonitor(monitorWorkAreas, relativeTileAreasByMonitor) {
-        const tilesByMonitor = new Array(monitorWorkAreas.length);        
+    _generateTilesByMonitor(monitorWorkAreas: Meta.Rectangle[], relativeTileAreasByMonitor: Rect[][]) {
+        const tilesByMonitor = new Array<Tile[]>(monitorWorkAreas.length);        
         for (let i = 0; i < monitorWorkAreas.length; i++) {
             tilesByMonitor[i] = this._calculateTileAreas(i, monitorWorkAreas[i], relativeTileAreasByMonitor[i]);
         }
         return tilesByMonitor;
     }
 
-    _generateAllTiles(tilesByMonitor) {
-        let allTiles = [];
+    _generateAllTiles(tilesByMonitor: Tile[][]) {
+        let allTiles: Tile[] = [];
         tilesByMonitor.forEach(tiles => allTiles = allTiles.concat(tiles));
         TileRelationshipCalculator.addRelationships(allTiles);
         return allTiles;
     }
 
-    _calculateTileAreas(monitorIdx, monitorWorkArea, relTileAreas) {
-        let tileAreas = new Array(relTileAreas.length);
+    _calculateTileAreas(monitorIdx: number, monitorWorkArea: Meta.Rectangle, relTileAreas: Rect[]) {
+        let tileAreas = new Array<Tile>(relTileAreas.length);
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
 
+            // @ts-ignore - missing ctor for Meta.Rectange struct
             const rect = new Meta.Rectangle({
                 x: monitorWorkArea.x + (monitorWorkArea.width * relArea.x),
                 y: monitorWorkArea.y + (monitorWorkArea.height * relArea.y),
@@ -144,7 +144,7 @@ var Tiles = class Tiles {
         return tileAreas;
     }
 
-    _getRelativeTileAreasForMonitor(monitorWorkArea) {
+    _getRelativeTileAreasForMonitor(monitorWorkArea: Meta.Rectangle): Rect[] {
         // Base the tiles off of the monitor aspect ratio range.
         //  Note that this is the work area, not the entire monitor area, so large taskbars etc... will be accounted for.
         const aspectRatio = monitorWorkArea.width / monitorWorkArea.height;
@@ -173,7 +173,7 @@ var Tiles = class Tiles {
         }
     }
 
-    _splitLayerTileAreas(topLayerTileAreas) {
+    _splitLayerTileAreas(topLayerTileAreas: Tile[]) {
         const splitLayerTileAreas = [];
         for (let i = 0; i < topLayerTileAreas.length; i++) {
             const topTile = topLayerTileAreas[i];
@@ -185,14 +185,18 @@ var Tiles = class Tiles {
                 const h = topTile.height / 2;
 
                 // Top
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, 
+                    // @ts-ignore - missing ctor for Meta.Rectange struct
+                    new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y,
                     width: w,
                     height: h,
                 })));
                 // Bottom
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, 
+                    // @ts-ignore - missing ctor for Meta.Rectange struct
+                    new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y + h,
                     width: w,
@@ -205,14 +209,18 @@ var Tiles = class Tiles {
                 const h = topTile.height;
 
                 // Left
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, 
+                    // @ts-ignore - missing ctor for Meta.Rectange struct
+                    new Meta.Rectangle({
                     x: topTile.x,
                     y: topTile.y,
                     width: w,
                     height: h,
                 })));
                 // Right
-                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, new Meta.Rectangle({
+                splitLayerTileAreas.push(new Tile(topTile.monitorIdx, topTile, 
+                    // @ts-ignore - missing ctor for Meta.Rectange struct
+                    new Meta.Rectangle({
                     x: topTile.x + w,
                     y: topTile.y,
                     width: w,
