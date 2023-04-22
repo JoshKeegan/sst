@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        // Do not actually generate any js, that is done by esbuild.
+        // We are effectively just using tsc to check the ts builds since esbuild doesn't do any type checking.
+        "noEmit": true,
+        "module": "ESNext",
+        // Would need to be ES2015 for tsc to target GJS, but we're separately using esbuild to generate the JS
+        "target": "ESNext",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+    },
+    "include": [
+        "src/*"
+    ]
+}
