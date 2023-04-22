@@ -52,6 +52,9 @@
         },
         {
             "class": "^Update-manager$"
+        },
+        {
+            "class": "^Xmessage$"
         }
     ]
 }
