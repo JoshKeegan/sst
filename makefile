@@ -19,12 +19,13 @@ build-tools:
 	(cd tools/esbuild && go build -o ../bin/)
 	(cd tools/xUpdateSizeHints && go build -o ../../build/)
 
+.PHONY: build
 build:
 	yarn
 	yarn build
 
 .PHONY: install
-install: build
+install:
 	ln -s "$(PWD)/build" ~/.local/share/gnome-shell/extensions/$(EXTENSION)
 
 .PHONY: uninstall
@@ -40,6 +41,7 @@ build-watch: build-tools
 .PHONY: settings-schema-compile
 settings-schema-compile:
 	glib-compile-schemas schemas/
+	cp schemas/gschemas.compiled build/
 
 .PHONY: gnome-shell-logs
 gnome-shell-logs:
