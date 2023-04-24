@@ -39,9 +39,6 @@ func run(watchMode bool) error {
 		Loader: map[string]api.Loader{
 			".json": api.LoaderCopy,
 		},
-		Inject: []string{
-			"tools/esbuild/gjsInject.js",
-		},
 		Outdir: "build",
 		Write:  true,
 		Bundle: true,
