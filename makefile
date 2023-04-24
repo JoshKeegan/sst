@@ -21,7 +21,7 @@ build-tools:
 
 .PHONY: build
 build:
-	yarn
+	yarn install --frozen-lockfile
 	yarn build
 
 .PHONY: install
