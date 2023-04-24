@@ -33,6 +33,7 @@ func run(watchMode bool) error {
 		EntryPoints: []string{
 			"src/extension.ts",
 			"src/stylesheet.css",
+			"src/config.default.json",
 			"src/metadata.json",
 		},
 		Loader: map[string]api.Loader{
