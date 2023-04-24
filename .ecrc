@@ -1,6 +1,9 @@
 {
     "Exclude": [
         "^.git/",
+        ".idea/",
+        "^build/",
+        "^node_modules/",
         "^schemas/gschemas.compiled$"
     ]
 }
