@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -13,3 +13,29 @@ jobs:
       
       - name: Lint
         run: make lint
+  
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'tools/go.mod'
+      
+      - name: Build Tools
+        run: make build-tools
+      
+      - name: Test Tools
+        run: make test-tools
+      
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+      
+      - name: Build
+        run: make build

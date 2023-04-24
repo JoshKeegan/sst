@@ -12,7 +12,11 @@ lint:
 	echo "Editorconfig styles followed"
 
 .PHONY: ci
-ci: lint
+ci: lint build-tools test-tools build
+
+.PHONY: test-tools
+test-tools:
+	(cd tools && go test -v ./...)
 
 .PHONY: build-tools
 build-tools:
