@@ -10,7 +10,7 @@
   "scripts": {
     "build:esbuild": "tools/bin/esbuild",
     "build:tsc": "tsc",
-    "build": "concurrently \"yarn build:tsc\" \"yarn build:esbuild\"",
+    "build": "yarn build:tsc && yarn build:esbuild",
     "dev": "concurrently \"tsc --watch\" \"yarn build:esbuild --watch\""
   },
   "devDependencies": {
