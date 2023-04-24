@@ -41,7 +41,8 @@ build-watch: build-tools
 .PHONY: settings-schema-compile
 settings-schema-compile:
 	glib-compile-schemas schemas/
-	cp schemas/gschemas.compiled build/
+	mkdir -p build/schemas/
+	cp schemas/gschemas.compiled build/schemas/
 
 .PHONY: gnome-shell-logs
 gnome-shell-logs:
