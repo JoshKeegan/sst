@@ -1,5 +1,8 @@
 EXTENSION := sst@joshkeegan.co.uk
 
+.PHONY: default
+default: build-tools build
+
 .PHONY: clean
 clean:
 	rm -rf build/* || true
