@@ -3,3 +3,4 @@ schemas/gschemas.compiled
 /tools/bin
 /node_modules
 yarn-error.log
+build/

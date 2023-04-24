@@ -7,6 +7,12 @@
   "author": "Josh Keegan <josh.keegan@gmx.com>",
   "license": "GPL-3.0",
   "private": false,
+  "scripts": {
+    "build:esbuild": "tools/bin/esbuild",
+    "build:tsc": "tsc",
+    "build": "concurrently \"yarn build:tsc\" \"yarn build:esbuild\"",
+    "dev": "concurrently \"tsc --watch\" \"yarn build:esbuild --watch\""
+  },
   "devDependencies": {
     "@girs/clutter-12": "^12.0.0-3.0.0-beta.13",
     "@girs/gio-2.0": "^2.76.1-3.0.0-beta.13",

@@ -3,9 +3,9 @@ package models_test
 import (
 	"testing"
 
+	"github.com/JoshKeegan/sst/tools/xUpdateSizeHints/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"xUpdateSizeHints/models"
 )
 
 func TestXSizeHints_RoundTrip(t *testing.T) {

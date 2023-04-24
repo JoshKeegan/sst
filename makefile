@@ -1,3 +1,9 @@
+EXTENSION := sst@joshkeegan.co.uk
+
+.PHONY: clean
+clean:
+	rm -rf build/* || true
+
 .PHONY: lint
 lint:
 	@docker run --rm \
@@ -10,8 +16,27 @@ ci: lint
 
 .PHONY: build-tools
 build-tools:
+	(cd tools/esbuild && go build -o ../bin/)
 	(cd tools/xUpdateSizeHints && go build -o ../bin/)
 
+build:
+	yarn
+	yarn build
+
+.PHONY: install
+install: build
+	ln -s "$(PWD)/build" ~/.local/share/gnome-shell/extensions/$(EXTENSION)
+
+.PHONY: uninstall
+uninstall:
+	rm -rf ~/.local/share/gnome-shell/extensions/$(EXTENSION)
+
+.PHONY: build-watch
+build-watch: build-tools
+	yarn dev
+
+# TODO: Can settings compilation be moved into eslint?
+# Currently it won't out to the build/ dir, or watched for changes
 .PHONY: settings-schema-compile
 settings-schema-compile:
 	glib-compile-schemas schemas/
@@ -28,11 +53,8 @@ endif
 
 .PHONY: enable
 enable:
-	gnome-extensions enable sst@joshkeegan.co.uk
+	gnome-extensions enable $(EXTENSION)
 
 .PHONY: disable
 disable:
-	gnome-extensions disable sst@joshkeegan.co.uk
-
-.PHONY: local-dev
-local-dev: build-tools settings-schema-compile disable enable
+	gnome-extensions disable $(EXTENSION)

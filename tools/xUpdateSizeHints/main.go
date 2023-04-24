@@ -7,10 +7,10 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/JoshKeegan/sst/tools/xUpdateSizeHints/models"
 	"github.com/jezek/xgb/xproto"
 	"github.com/jezek/xgbutil"
 	"github.com/jezek/xgbutil/xprop"
-	"xUpdateSizeHints/models"
 )
 
 func main() {
