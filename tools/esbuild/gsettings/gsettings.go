@@ -14,7 +14,7 @@ import (
 
 const pluginName = "GSettings Compiler"
 
-var GSettingsPlugin = api.Plugin{
+var Plugin = api.Plugin{
 	Name: pluginName,
 	Setup: func(build api.PluginBuild) {
 		build.OnEnd(func(result *api.BuildResult) (api.OnEndResult, error) {

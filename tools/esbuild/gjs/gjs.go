@@ -1,4 +1,4 @@
-package main
+package gjs
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 var girRegex = regexp.MustCompile(`import (\w+) from ["']@girs/.+["']`)
 
-var gjsPlugin = api.Plugin{
+var Plugin = api.Plugin{
 	Name: "GJS Import Converter",
 	Setup: func(build api.PluginBuild) {
 		build.OnLoad(api.OnLoadOptions{Filter: `.*\.ts`},

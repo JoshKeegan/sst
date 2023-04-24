@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/JoshKeegan/sst/tools/esbuild/gjs"
 	"github.com/JoshKeegan/sst/tools/esbuild/gsettings"
 	"github.com/evanw/esbuild/pkg/api"
 )
@@ -59,8 +60,8 @@ func run(watchMode bool) error {
 			"@girs/*",
 		},
 		Plugins: []api.Plugin{
-			gjsPlugin,
-			gsettings.GSettingsPlugin,
+			gjs.Plugin,
+			gsettings.Plugin,
 		},
 	}
 
