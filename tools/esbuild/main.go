@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/JoshKeegan/sst/tools/esbuild/gsettings"
 	"github.com/evanw/esbuild/pkg/api"
 )
 
@@ -35,9 +36,11 @@ func run(watchMode bool) error {
 			"src/stylesheet.css",
 			"src/config.default.json",
 			"src/metadata.json",
+			"schemas/org.gnome.shell.extensions.sst.gschema.xml",
 		},
 		Loader: map[string]api.Loader{
-			".json": api.LoaderCopy,
+			".json":        api.LoaderCopy,
+			".gschema.xml": api.LoaderEmpty,
 		},
 		Outdir: "build",
 		Write:  true,
@@ -55,7 +58,10 @@ func run(watchMode bool) error {
 		External: []string{
 			"@girs/*",
 		},
-		Plugins: []api.Plugin{gjsPlugin},
+		Plugins: []api.Plugin{
+			gjsPlugin,
+			gsettings.GSettingsPlugin,
+		},
 	}
 
 	if watchMode {

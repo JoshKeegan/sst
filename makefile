@@ -40,14 +40,6 @@ uninstall:
 build-watch: build-tools
 	yarn dev
 
-# TODO: Can settings compilation be moved into eslint?
-# Currently it won't out to the build/ dir, or watched for changes
-.PHONY: settings-schema-compile
-settings-schema-compile:
-	glib-compile-schemas schemas/
-	mkdir -p build/schemas/
-	cp schemas/gschemas.compiled build/schemas/
-
 .PHONY: gnome-shell-logs
 gnome-shell-logs:
 ifeq ($(XDG_SESSION_TYPE),x11)
