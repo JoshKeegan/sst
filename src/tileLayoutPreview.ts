@@ -6,22 +6,22 @@ import { Type as TTileLayoutPreviewItem, Registered as RTileLayoutPreviewItem } 
  * @param Tile tiles - tiles to be included in this preview (will be all tiles in a layer)
  */
 export default class TileLayoutPreview {
-    private _items: TTileLayoutPreviewItem[];
+    private items: TTileLayoutPreviewItem[];
 
     constructor(tiles: Tile[]) {
-        this._items = tiles.map(t => new RTileLayoutPreviewItem(t));
+        this.items = tiles.map(t => new RTileLayoutPreviewItem(t));
     }
 
     destroy() {
-        this._items.forEach(i => i.destroy());
-        this._items = [];
+        this.items.forEach(i => i.destroy());
+        this.items = [];
     }
 
     open() {
-        this._items.forEach(i => i.open());
+        this.items.forEach(i => i.open());
     }
 
     close() {
-        this._items.forEach(i => i.close());
+        this.items.forEach(i => i.close());
     }
 }

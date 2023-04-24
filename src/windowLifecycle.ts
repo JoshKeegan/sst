@@ -29,26 +29,41 @@ export default class WindowLifecycle {
         };
 
         this.displaySignals.push(global.display.connect("window_created", 
-            (_, window: TiledWindow) => this._onCreated(window)));
+            (_, window: TiledWindow) => this.onCreated(window)));
         
-        tiles.connectLayoutChanged(this._onLayoutChanged.bind(this));
+        tiles.connectLayoutChanged(this.onLayoutChanged.bind(this));
 
         // Call on layout changed to auto-tile any existing windows (e.g. after a gnome-shell restart)
-        this._onLayoutChanged();
+        this.onLayoutChanged();
     }
 
     destroy() {
         this.displaySignals.forEach(sId => global.display.disconnect(sId));
     }
 
-    _onCreated(window: TiledWindow) {
-        log(`created: ${window.get_title()}`);
-        window.tile = null;
-        this._autoTile(window);
-        window.connect("size-changed", this._onSizeChanged.bind(this, window));
+    isTilingModeActive(window: TiledWindow) {
+        // If floating by default, control tiling entirely based on user-input. Assumes that if the user asks 
+        //  for a window to be tiled, they want it tiling regardless of whether we think it should be.
+        if (!this.settings.tileByDefault) {
+            return this.isTilingKeyPressed();
+        }
+
+        // Otherwise tiling is the default, if we think the window should be floated, float it.
+        if (!this.windowTileable.isTileable(window)) {
+            return false;
+        }
+        // Window can be tiled, check the user isn't asking for it to be floated
+        return !this.isTilingKeyPressed();
     }
 
-    _onSizeChanged(window: TiledWindow) {
+    private onCreated(window: TiledWindow) {
+        log(`created: ${window.get_title()}`);
+        window.tile = null;
+        this.autoTile(window);
+        window.connect("size-changed", this.onSizeChanged.bind(this, window));
+    }
+
+    private onSizeChanged(window: TiledWindow) {
         const wRect = window.get_frame_rect();
         log(`window "${window.get_title()}" size changed to ${wRect.width}x${wRect.height}`);
 
@@ -63,7 +78,7 @@ export default class WindowLifecycle {
         }
     }
 
-    _onLayoutChanged() {
+    private onLayoutChanged() {
         log("layout changed");
         
         // Auto-tile all windows on each workspace
@@ -74,7 +89,7 @@ export default class WindowLifecycle {
                 ws.list_windows().forEach(metaWindow => {
                     const window = metaWindow as TiledWindow;
                     window.tile = null;
-                    this._autoTile(window);
+                    this.autoTile(window);
                 });
             }
         }
@@ -87,7 +102,7 @@ export default class WindowLifecycle {
      * it to have been sub-tiled etc... whilst still generally putting it in a reasonable position).
      * This works because windows generally re-open in their previous position(ish).
      */
-    _autoTile(window: TiledWindow) {
+    private autoTile(window: TiledWindow) {
         // If tile by default is off, or the window's fixed properties (ones that cannot be updated by the app async) 
         //  mean it cannot be tiled then this window will never get auto-tiled.
         if (!this.settings.tileByDefault || !this.windowTileable.isTileableFixedProps(window)) {
@@ -99,7 +114,7 @@ export default class WindowLifecycle {
 
         // If the window is tileable right now, tile it. If the window moves itself async, we will need to re-tile it though.
         if (this.windowTileable.isTileable(window)) {
-            const tile = this._autoTileSelectTile(window);
+            const tile = this.autoTileSelectTile(window);
             if (tile !== null) {
                 log(`No delay auto-tiling "${window.get_title()}" to ${tile}`);
                 WindowMover.move(window, tile);
@@ -130,7 +145,7 @@ export default class WindowLifecycle {
                 WindowMover.leave(window, window.tile);
                 return;
             }
-            const tile = this._autoTileSelectTile(window);
+            const tile = this.autoTileSelectTile(window);
             if (tile !== null) {
                 log(`Auto-tiling "${window.get_title()}" to ${tile} (deferred)`);
             
@@ -153,7 +168,7 @@ export default class WindowLifecycle {
 
             // Check if the window has already been closed. 
             // Trying to use window object when the window no longer exists crashes Mutter.
-            if (!this._isWindowOpen(windowId)) {
+            if (!this.isWindowOpen(windowId)) {
                 log("Window closed before auto-tile delay fired");
                 return false;
             }
@@ -172,7 +187,7 @@ export default class WindowLifecycle {
                 WindowMover.leave(window, window.tile);
                 return false;
             }
-            const tile = this._autoTileSelectTile(window);
+            const tile = this.autoTileSelectTile(window);
             if (tile === null) {
                 log(`Unable to find a tile to auto-tile window "${window.get_title()}" to`);
                 return false;
@@ -185,7 +200,7 @@ export default class WindowLifecycle {
         });
     }
 
-    _autoTileSelectTile(window: TiledWindow) {
+    private autoTileSelectTile(window: TiledWindow) {
         const wRect = window.get_frame_rect();
 
         // First see if the window matches a tile (any layer)
@@ -199,27 +214,12 @@ export default class WindowLifecycle {
         return TileRelationshipCalculator.findClosest(this.tiles.getAllTiles(0), wRect);
     }
 
-    isTilingModeActive(window: TiledWindow) {
-        // If floating by default, control tiling entirely based on user-input. Assumes that if the user asks 
-        //  for a window to be tiled, they want it tiling regardless of whether we think it should be.
-        if (!this.settings.tileByDefault) {
-            return this._isTilingKeyPressed();
-        }
-
-        // Otherwise tiling is the default, if we think the window should be floated, float it.
-        if (!this.windowTileable.isTileable(window)) {
-            return false;
-        }
-        // Window can be tiled, check the user isn't asking for it to be floated
-        return !this._isTilingKeyPressed();
-    }
-
-    _isTilingKeyPressed() {
+    private isTilingKeyPressed() {
         // TODO: Make key configurable
         return this.keybindHandler.isModKeyPressed(Clutter.ModifierType.CONTROL_MASK);
     }
 
-    _isWindowOpen(windowId: number) {
+    private isWindowOpen(windowId: number) {
         const windows = global.workspace_manager.get_active_workspace().list_windows();
         for (let i = 0; i < windows.length; i++) {
             if (windows[i].get_id() === windowId) {

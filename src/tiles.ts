@@ -7,42 +7,42 @@ import TileLayoutPreview from "./tileLayoutPreview";
 const Main = imports.ui.main;
 
 export default class Tiles {
-    private _previews: TileLayoutPreview[] = [];
-    private _layoutChangedCallbacks: (() => void)[] = [];
-    private _layoutSignalId: number;
+    private previews: TileLayoutPreview[] = [];
+    private layoutChangedCallbacks: (() => void)[] = [];
+    private layoutSignalId: number;
 
     /** tileLayer => monitorIdx => [Tile] */
-    private _tilesByMonitor: Tile[][][] = [];
+    private tilesByMonitor: Tile[][][] = [];
     /** tileLayer => [Tile] */
-    private _allTiles: Tile[][] = [];
+    private allTiles: Tile[][] = [];
 
     constructor() {
-        this._layoutSignalId = global.display.connect('workareas-changed', this._refreshTiles.bind(this));
-        this._refreshTiles();
+        this.layoutSignalId = global.display.connect('workareas-changed', this.refreshTiles.bind(this));
+        this.refreshTiles();
     }
 
-    get numLayers() { return this._tilesByMonitor.length; }
+    get numLayers() { return this.tilesByMonitor.length; }
 
     getTiles(tileLayer: number, monitorIdx: number) {
-        return this._tilesByMonitor[tileLayer][monitorIdx];
+        return this.tilesByMonitor[tileLayer][monitorIdx];
     }
 
     getAllTiles(tileLayer: number) {
-        return this._allTiles[tileLayer];
+        return this.allTiles[tileLayer];
     }
 
     getTileLayoutPreview(tileLayer: number) {
-        return this._previews[tileLayer];
+        return this.previews[tileLayer];
     }
 
     // TODO: Needn't be calculated at runtime
     get all() {
-        return Array<Tile>().concat(...this._allTiles);
+        return Array<Tile>().concat(...this.allTiles);
     }
 
     destroy() {
-        global.display.disconnect(this._layoutSignalId);
-        this._destroyPreviews();
+        global.display.disconnect(this.layoutSignalId);
+        this.destroyPreviews();
     }
 
     /**
@@ -50,43 +50,43 @@ export default class Tiles {
      * @param function callback - function to be called when the layout changes
      */
     connectLayoutChanged(callback: () => void) {
-        this._layoutChangedCallbacks.push(callback);
+        this.layoutChangedCallbacks.push(callback);
     }
 
-    _destroyPreviews() {
-        this._previews.forEach(p => p.destroy());
-        this._previews = [];
+    private destroyPreviews() {
+        this.previews.forEach(p => p.destroy());
+        this.previews = [];
     }
 
-    _refreshTiles() {
+    private refreshTiles() {
         log("sst: refreshing tiles");
 
-        this._destroyPreviews();
+        this.destroyPreviews();
 
-        const monitorWorkAreas = this._getMonitorWorkAreas();
+        const monitorWorkAreas = this.getMonitorWorkAreas();
 
-        const topLayerRelTileAreasByMon = monitorWorkAreas.map(this._getRelativeTileAreasForMonitor);
+        const topLayerRelTileAreasByMon = monitorWorkAreas.map(this.getRelativeTileAreasForMonitor);
 
-        this._tilesByMonitor = new Array<Tile[][]>(3);
-        this._tilesByMonitor[0] = this._generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon);
-        this._tilesByMonitor[1] = this._tilesByMonitor[0].map(this._splitLayerTileAreas);
-        this._tilesByMonitor[2] = this._tilesByMonitor[1].map(this._splitLayerTileAreas);
+        this.tilesByMonitor = new Array<Tile[][]>(3);
+        this.tilesByMonitor[0] = this.generateTilesByMonitor(monitorWorkAreas, topLayerRelTileAreasByMon);
+        this.tilesByMonitor[1] = this.tilesByMonitor[0].map(this.splitLayerTileAreas);
+        this.tilesByMonitor[2] = this.tilesByMonitor[1].map(this.splitLayerTileAreas);
 
-        this._allTiles = this._tilesByMonitor.map(this._generateAllTiles);
-        this._previews = this._allTiles.map(tiles => new TileLayoutPreview(tiles));
+        this.allTiles = this.tilesByMonitor.map(this.generateAllTiles);
+        this.previews = this.allTiles.map(tiles => new TileLayoutPreview(tiles));
 
         // Log tiles for debugging
         log("Generated Tiles:");
-        for(let i = 0; i < this._allTiles.length; i++) {
+        for(let i = 0; i < this.allTiles.length; i++) {
             log(`Layer ${i}`);
-            this._allTiles[i].forEach(t => log(t));
+            this.allTiles[i].forEach(t => log(t));
         }
 
         // Layout has been changed
-        this._layoutChangedCallbacks.forEach(fn => fn());
+        this.layoutChangedCallbacks.forEach(fn => fn());
     }
 
-    _getMonitorWorkAreas() {
+    private getMonitorWorkAreas() {
         // Assume that all workspaces will be the same & just use the first.
         //  gnome-shell makes the same assumption internally so seems safe enough for now...
         const ws = global.workspace_manager.get_workspace_by_index(0);
@@ -102,22 +102,22 @@ export default class Tiles {
         return workAreas;
     }
 
-    _generateTilesByMonitor(monitorWorkAreas: Meta.Rectangle[], relativeTileAreasByMonitor: Rect[][]) {
+    private generateTilesByMonitor(monitorWorkAreas: Meta.Rectangle[], relativeTileAreasByMonitor: Rect[][]) {
         const tilesByMonitor = new Array<Tile[]>(monitorWorkAreas.length);        
         for (let i = 0; i < monitorWorkAreas.length; i++) {
-            tilesByMonitor[i] = this._calculateTileAreas(i, monitorWorkAreas[i], relativeTileAreasByMonitor[i]);
+            tilesByMonitor[i] = this.calculateTileAreas(i, monitorWorkAreas[i], relativeTileAreasByMonitor[i]);
         }
         return tilesByMonitor;
     }
 
-    _generateAllTiles(tilesByMonitor: Tile[][]) {
+    private generateAllTiles(tilesByMonitor: Tile[][]) {
         let allTiles: Tile[] = [];
         tilesByMonitor.forEach(tiles => allTiles = allTiles.concat(tiles));
         TileRelationshipCalculator.addRelationships(allTiles);
         return allTiles;
     }
 
-    _calculateTileAreas(monitorIdx: number, monitorWorkArea: Meta.Rectangle, relTileAreas: Rect[]) {
+    private calculateTileAreas(monitorIdx: number, monitorWorkArea: Meta.Rectangle, relTileAreas: Rect[]) {
         let tileAreas = new Array<Tile>(relTileAreas.length);
         for (let i = 0; i < tileAreas.length; i++) {
             const relArea = relTileAreas[i];
@@ -144,7 +144,7 @@ export default class Tiles {
         return tileAreas;
     }
 
-    _getRelativeTileAreasForMonitor(monitorWorkArea: Meta.Rectangle): Rect[] {
+    private getRelativeTileAreasForMonitor(monitorWorkArea: Meta.Rectangle): Rect[] {
         // Base the tiles off of the monitor aspect ratio range.
         //  Note that this is the work area, not the entire monitor area, so large taskbars etc... will be accounted for.
         const aspectRatio = monitorWorkArea.width / monitorWorkArea.height;
@@ -173,7 +173,7 @@ export default class Tiles {
         }
     }
 
-    _splitLayerTileAreas(topLayerTileAreas: Tile[]) {
+    private splitLayerTileAreas(topLayerTileAreas: Tile[]) {
         const splitLayerTileAreas = [];
         for (let i = 0; i < topLayerTileAreas.length; i++) {
             const topTile = topLayerTileAreas[i];

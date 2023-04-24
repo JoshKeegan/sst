@@ -3,17 +3,17 @@ export default class Geometry {
      * Finds the euclidean distance between the closest corners of two rectangles
      */
     static euclideanDistanceBetweenClosestCorners(a: Rect, b: Rect): number {
-        return this._euclideanDistanceBeteenClosestPoints([
-            this._rectTopLeft(a),
-            this._rectTopRight(a),
-            this._rectBottomRight(a),
-            this._rectBottomLeft(a),
+        return this.euclideanDistanceBeteenClosestPoints([
+            this.rectTopLeft(a),
+            this.rectTopRight(a),
+            this.rectBottomRight(a),
+            this.rectBottomLeft(a),
         ],
         [
-            this._rectTopLeft(b),
-            this._rectTopRight(b),
-            this._rectBottomRight(b),
-            this._rectBottomLeft(b),
+            this.rectTopLeft(b),
+            this.rectTopRight(b),
+            this.rectBottomRight(b),
+            this.rectBottomLeft(b),
         ]);
     }
 
@@ -46,7 +46,7 @@ export default class Geometry {
         };
     }
     
-    static _euclideanDistanceBeteenClosestPoints(a: Point[], b: Point[]): number {
+    private static euclideanDistanceBeteenClosestPoints(a: Point[], b: Point[]): number {
         let dBest = Infinity;
         for (let i = 0; i < a.length; i++) {
             for (let j = 0; j < b.length; j++) {
@@ -56,25 +56,25 @@ export default class Geometry {
         return dBest;
     }
     
-    static _rectTopLeft(r: Rect): Point {
+    private static rectTopLeft(r: Rect): Point {
         return r;
     }
 
-    static _rectTopRight(r: Rect): Point {
+    private static rectTopRight(r: Rect): Point {
         return {
             x: r.x + r.width - 1,
             y: r.y,
         };
     }
 
-    static _rectBottomRight(r: Rect): Point {
+    private static rectBottomRight(r: Rect): Point {
         return {
             x: r.x + r.width - 1,
             y: r.y + r.height - 1,
         };
     }
 
-    static _rectBottomLeft(r: Rect): Point {
+    private static rectBottomLeft(r: Rect): Point {
         return {
             x: r.x,
             y: r.y + r.height - 1,

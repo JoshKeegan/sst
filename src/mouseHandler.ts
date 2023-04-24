@@ -35,12 +35,12 @@ export default class MouseHandler {
     private windowLifecycle: WindowLifecycle;
     private tiles: Tiles;
     private keybindHandler: KeybindHandler;
-    private _displaySignals: number[] = [];
-    private _posChangedId = 0;
-    private _lastActive = false;
-    private _tileLayoutPreview: TileLayoutPreview | null = null;
-    private _tilePreview = new windowManager.TilePreview();
-    private _tile: Tile | null = null;
+    private displaySignals: number[] = [];
+    private posChangedId = 0;
+    private lastActive = false;
+    private tileLayoutPreview: TileLayoutPreview | null = null;
+    private tilePreview = new windowManager.TilePreview();
+    private tile: Tile | null = null;
 
     constructor(windowLifecycle: WindowLifecycle, tiles: Tiles, keybindHandler: KeybindHandler) {
         this.windowLifecycle = windowLifecycle;
@@ -50,67 +50,67 @@ export default class MouseHandler {
         const isMoving = (grabOp: Meta.GrabOp) => 
             [Meta.GrabOp.MOVING, Meta.GrabOp.KEYBOARD_MOVING].includes(grabOp);
 
-        this._displaySignals.push(global.display.connect("grab-op-begin", wrapGrabOpCallback((window, grabOp) => {
+        this.displaySignals.push(global.display.connect("grab-op-begin", wrapGrabOpCallback((window, grabOp) => {
             if (window !== null && isMoving(grabOp)) {
-                this._onMoveStarted(window);
+                this.onMoveStarted(window);
             }
         })));
-        this._displaySignals.push(global.display.connect("grab-op-end", wrapGrabOpCallback((window, grabOp) => {
+        this.displaySignals.push(global.display.connect("grab-op-end", wrapGrabOpCallback((window, grabOp) => {
             if (window !== null && isMoving(grabOp)) {
-                this._onMoveFinished(window);
+                this.onMoveFinished(window);
             }
         })));
     }
 
     destroy() {
-        this._displaySignals.forEach(sId => global.display.disconnect(sId));
-        this._tilePreview.destroy();
-        this._tilePreview = null;
+        this.displaySignals.forEach(sId => global.display.disconnect(sId));
+        this.tilePreview.destroy();
+        this.tilePreview = null;
     }
 
-    _onMoveStarted(window: TiledWindow) {
+    private onMoveStarted(window: TiledWindow) {
         log("sst: move started");
 
-        this._posChangedId = window.connect("position-changed",
-            this._onMoving.bind(this, window));
+        this.posChangedId = window.connect("position-changed",
+            this.onMoving.bind(this, window));
         
         // Behaviour on leaving a tile
         WindowMover.leave(window, window.tile);
     }
 
-    _onMoveFinished(window: TiledWindow) {
+    private onMoveFinished(window: TiledWindow) {
         log("sst: moved finished");
 
-        if (this._posChangedId) {
-            window.disconnect(this._posChangedId);
-            this._posChangedId = 0;
+        if (this.posChangedId) {
+            window.disconnect(this.posChangedId);
+            this.posChangedId = 0;
         }
 
-        if (this._tile !== null && this.windowLifecycle.isTilingModeActive(window)) {
-            WindowMover.move(window, this._tile);
+        if (this.tile !== null && this.windowLifecycle.isTilingModeActive(window)) {
+            WindowMover.move(window, this.tile);
         }
 
-        this._closeTileLayoutPreview();
+        this.closeTileLayoutPreview();
 
-        this._tilePreview.close();
-        this._tile = null;
+        this.tilePreview.close();
+        this.tile = null;
     }
 
-    _onMoving(window: TiledWindow) {
+    private onMoving(window: TiledWindow) {
         let active = this.windowLifecycle.isTilingModeActive(window);
 
         if (active) {
-            this._draw(window, this._getTilingLayer());
+            this.draw(window, this.getTilingLayer());
         }
-        else if (this._lastActive) {
-            this._closeTileLayoutPreview();
+        else if (this.lastActive) {
+            this.closeTileLayoutPreview();
 
-            this._undraw();
+            this.undraw();
         }
-        this._lastActive = active;
+        this.lastActive = active;
     }
 
-    _getTilingLayer() {
+    private getTilingLayer() {
         let layer = 0;
         for (let i = 0; i < TILING_LAYER_KEY_MASKS.length && layer < this.tiles.numLayers - 1; i++) {
             if (this.keybindHandler.isModKeyPressed(TILING_LAYER_KEY_MASKS[i])) {
@@ -120,34 +120,34 @@ export default class MouseHandler {
         return layer;
     }
 
-    _draw(window: TiledWindow, tileLayer: number) {
-        this._openTileLayoutPreview(tileLayer);
+    private draw(window: TiledWindow, tileLayer: number) {
+        this.openTileLayoutPreview(tileLayer);
 
         // Calculate the tile the window will move to
         const monitorIdx = global.display.get_current_monitor();
         const tiles = this.tiles.getTiles(tileLayer, monitorIdx);
         const pointer = global.get_pointer();
-        const tile = this._selectTile(tiles, { x: pointer[0], y: pointer[1] });
+        const tile = this.selectTile(tiles, { x: pointer[0], y: pointer[1] });
 
         // If the window wouldn't currently get tiled, close the preview
         if (tile === null) {
-            this._undraw();
+            this.undraw();
             return;
         }
 
         // Draw the preview of the tile the window will move to
-        if (!this._tile || !tile.rect.equal(this._tile.rect)) {
-            this._tilePreview.open(window, tile.rect, monitorIdx);
-            this._tile = tile;
+        if (!this.tile || !tile.rect.equal(this.tile.rect)) {
+            this.tilePreview.open(window, tile.rect, monitorIdx);
+            this.tile = tile;
         }
     }
 
-    _undraw() {
-        this._tilePreview.close();
-        this._tile = null;
+    private undraw() {
+        this.tilePreview.close();
+        this.tile = null;
     }
 
-    _selectTile(tiles: Tile[], ptr: Point) {
+    private selectTile(tiles: Tile[], ptr: Point) {
         const tile = tiles.find(t =>  Geometry.contains(t, ptr));
         if (tile === undefined) {
             return null;
@@ -190,24 +190,24 @@ export default class MouseHandler {
         return combinedTile;
     }
 
-    _openTileLayoutPreview(tileLayer: number) {
+    private openTileLayoutPreview(tileLayer: number) {
         const tileLayoutPreview = this.tiles.getTileLayoutPreview(tileLayer);
 
         // If there is already a tile layout being previewed, and it is not the one for this
         //  layer, close the old one first.
-        if (this._tileLayoutPreview !== null && this._tileLayoutPreview !== tileLayoutPreview) {
-            this._closeTileLayoutPreview();
+        if (this.tileLayoutPreview !== null && this.tileLayoutPreview !== tileLayoutPreview) {
+            this.closeTileLayoutPreview();
         }
 
         tileLayoutPreview.open();
-        this._tileLayoutPreview = tileLayoutPreview;
+        this.tileLayoutPreview = tileLayoutPreview;
     }
 
-    _closeTileLayoutPreview() {
-        if (this._tileLayoutPreview === null) {
+    private closeTileLayoutPreview() {
+        if (this.tileLayoutPreview === null) {
             return;
         }
-        this._tileLayoutPreview.close();
-        this._tileLayoutPreview = null;
+        this.tileLayoutPreview.close();
+        this.tileLayoutPreview = null;
     }
 }

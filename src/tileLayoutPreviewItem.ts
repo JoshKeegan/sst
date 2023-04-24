@@ -20,10 +20,10 @@ const ANIMATION_TIME = 250;
  * Used as part of the wider TileLayoutPreview to preview all tiles in a layer. 
  */
 class Type extends St.Widget {
-    private _showing: boolean = false;
+    private showing: boolean = false;
 
-    _init(tile: Tile) {
-        super._init({
+    constructor(tile: Tile) {
+        super({
             x: tile.x,
             y: tile.y,
             width: tile.width,
@@ -42,10 +42,10 @@ class Type extends St.Widget {
     }
 
     open() {
-        if (this._showing) {
+        if (this.showing) {
             return;
         }
-        this._showing = true;
+        this.showing = true;
         
         this.show();
         // @ts-ignore - .ease is a gnome-shell convenience method around the clutter API
@@ -57,10 +57,10 @@ class Type extends St.Widget {
     }
 
     close() {
-        if(!this._showing) {
+        if(!this.showing) {
             return;
         }
-        this._showing = false;
+        this.showing = false;
 
         // @ts-ignore - .ease is a gnome-shell convenience method around the clutter API
         this.ease({

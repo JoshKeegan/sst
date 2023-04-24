@@ -7,10 +7,10 @@ export default class TileRelationshipCalculator {
     static addRelationships(tiles: Tile[]) {
         for (let i = 0; i < tiles.length; i++) {
             const tile = tiles[i];
-            this._addUpRelationship(tiles, tile);
-            this._addDownRelationship(tiles, tile);
-            this._addLeftRelationship(tiles, tile);
-            this._addRightRelationship(tiles, tile);
+            this.addUpRelationship(tiles, tile);
+            this.addDownRelationship(tiles, tile);
+            this.addLeftRelationship(tiles, tile);
+            this.addRightRelationship(tiles, tile);
         }
     }
 
@@ -121,7 +121,7 @@ export default class TileRelationshipCalculator {
      * @returns closest tile
      */
     static findClosest(tiles: Tile[], rect: Rect): Tile | null {
-        return this._findCenterWithin(tiles, rect) || this._findClosestCorners(tiles, rect);
+        return this.findCenterWithin(tiles, rect) || this.findClosestCorners(tiles, rect);
     }
 
     /**
@@ -130,7 +130,7 @@ export default class TileRelationshipCalculator {
      * @param rect rectangle to find tile relative to
      * @returns tile containing the rect center
      */
-    static _findCenterWithin(tiles: Tile[], rect: Rect): Tile | null {
+    private static findCenterWithin(tiles: Tile[], rect: Rect): Tile | null {
         const center = Geometry.center(rect);
         for (let i = 0; i < tiles.length; i++) {
             if (Geometry.contains(tiles[i], center)) {
@@ -147,7 +147,7 @@ export default class TileRelationshipCalculator {
      * @param rect rectangle to find tile relative to
      * @returns closest tile
      */
-    static _findClosestCorners(tiles: Tile[], rect: Rect): Tile | null {
+    private static findClosestCorners(tiles: Tile[], rect: Rect): Tile | null {
         let tBest = null;
         let dBest = Infinity;
         for (let i = 0; i < tiles.length; i++) {
@@ -160,7 +160,7 @@ export default class TileRelationshipCalculator {
         return tBest;
     }
 
-    static _addUpRelationship(tiles: Tile[], tile: Tile) {
+    private static addUpRelationship(tiles: Tile[], tile: Tile) {
         if (tile.relationships.up !== null) {
             return;
         }
@@ -176,7 +176,7 @@ export default class TileRelationshipCalculator {
         }
     }
 
-    static _addDownRelationship(tiles: Tile[], tile: Tile) {
+    private static addDownRelationship(tiles: Tile[], tile: Tile) {
         if (tile.relationships.down !== null) {
             return;
         }
@@ -192,7 +192,7 @@ export default class TileRelationshipCalculator {
         }
     }
 
-    static _addLeftRelationship(tiles: Tile[], tile: Tile) {
+    private static addLeftRelationship(tiles: Tile[], tile: Tile) {
         if (tile.relationships.left !== null) {
             return;
         }
@@ -208,7 +208,7 @@ export default class TileRelationshipCalculator {
         }
     }
 
-    static _addRightRelationship(tiles: Tile[], tile: Tile) {
+    private static addRightRelationship(tiles: Tile[], tile: Tile) {
         if (tile.relationships.right !== null) {
             return;
         }

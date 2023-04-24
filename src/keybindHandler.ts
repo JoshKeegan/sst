@@ -60,7 +60,7 @@ export default class KeybindHandler {
                 settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-                this._onTileMoveKeyPressed.bind(
+                this.onTileMoveKeyPressed.bind(
                     this, 
                     settingName, 
                     movement));
@@ -69,18 +69,18 @@ export default class KeybindHandler {
             settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL,
-                this._onNewWindowKeyPressed.bind(this));
+                this.onNewWindowKeyPressed.bind(this));
 
         this.launchKeybinds = [];
-        this._addLaunchKeybinding("launch-term", settings, execTerminal, false);
-        this._addLaunchKeybinding("launch-calc", settings, "gnome-calculator", false);
-        this._addLaunchKeybinding("launch-resource-monitor", settings,
+        this.addLaunchKeybinding("launch-term", settings, execTerminal, false);
+        this.addLaunchKeybinding("launch-calc", settings, "gnome-calculator", false);
+        this.addLaunchKeybinding("launch-resource-monitor", settings,
             () => settings.get_string("resource-monitor-cmd") ?? "gnome-system-monitor",
             () => settings.get_boolean("resource-monitor-needs-terminal"));
-        this._addLaunchKeybinding("launch-files", settings, "nautilus", false);
+        this.addLaunchKeybinding("launch-files", settings, "nautilus", false);
     }
     
-    _addLaunchKeybinding(settingName: string, settings: Gio.Settings, 
+    private addLaunchKeybinding(settingName: string, settings: Gio.Settings, 
         cmd: string | (() => string), 
         needsTerminal: boolean | (() => boolean)
         ) {
@@ -96,7 +96,7 @@ export default class KeybindHandler {
                     let evaledCmd = typeof(cmd) === "function" ? cmd() : cmd;
                     let evaledNeedsTerminal = typeof(needsTerminal) === "function" ? needsTerminal() : needsTerminal;
                     log(`Pressed ${settingName}`);
-                    this._launchCmd(evaledCmd, evaledNeedsTerminal);
+                    this.launchCmd(evaledCmd, evaledNeedsTerminal);
                 });
     }
 
@@ -113,7 +113,7 @@ export default class KeybindHandler {
         return (modifiers & modMask) !== 0;
     }
 
-    _onTileMoveKeyPressed(settingName: string, movement: TileMoveKey) {
+    private onTileMoveKeyPressed(settingName: string, movement: TileMoveKey) {
         log("Pressed " + settingName);
 
         const metaWindow = global.display.focus_window;
@@ -183,7 +183,7 @@ export default class KeybindHandler {
         }
     }
 
-    _onNewWindowKeyPressed() {
+    private onNewWindowKeyPressed() {
         log("New window key pressed");
         
         const window = global.display.focus_window;
@@ -192,7 +192,7 @@ export default class KeybindHandler {
             return;
         }
 
-        const app = this._findApp(window);
+        const app = this.findApp(window);
         if (app === null) {
             log(`Cannot find app for window ${window.get_title()}`);
             return;
@@ -205,7 +205,7 @@ export default class KeybindHandler {
         app.open_new_window(-1);
     }
 
-    _findApp(window: Meta.Window) {
+    private findApp(window: Meta.Window) {
         const windowId = window.get_id();
         const appSys = Shell.AppSystem.get_default();
         const runningApps = appSys.get_running();
@@ -221,7 +221,7 @@ export default class KeybindHandler {
         return null;
     }
 
-    _launchCmd(cmd: string, needsTerminal: boolean) {
+    private launchCmd(cmd: string, needsTerminal: boolean) {
         let flags = Gio.AppInfoCreateFlags.SUPPORTS_STARTUP_NOTIFICATION;
         if (needsTerminal) {
             flags = flags | Gio.AppInfoCreateFlags.NEEDS_TERMINAL;

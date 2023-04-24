@@ -8,7 +8,7 @@ export default class WindowMover {
         // If the tile we're moving to has a parent that already has a window tiled to it,
         //  move that other window to the sibling tile.
         if (!tile.combined && tile.parent !== null && tile.sibling !== null) {
-            const parentTileWindow = this._getTopWindowInTile(tile.parent);
+            const parentTileWindow = this.getTopWindowInTile(tile.parent);
             if (parentTileWindow !== null) {
                 this.moveWithoutUpdatingOtherTiles(parentTileWindow, tile.sibling);
             }
@@ -81,26 +81,26 @@ export default class WindowMover {
         // If the tile we're leaving has no other window that will be on top of this tile
         //  once we leave it, and there's a sibling tile with a window in it, then that sibling's
         //  window can be moved to the parent.
-        if (tile.parent !== null && tile.sibling !== null && this._getTopWindowInTile(tile, window) === null) {
-            const siblingWindow = this._getTopWindowInTile(tile.sibling);
+        if (tile.parent !== null && tile.sibling !== null && this.getTopWindowInTile(tile, window) === null) {
+            const siblingWindow = this.getTopWindowInTile(tile.sibling);
             if (siblingWindow !== null) {
                 this.move(siblingWindow, tile.parent);
             }
         }
     }
 
-    static _getTopWindowInTile(tile: Tile, excludeWindow: TiledWindow | undefined = undefined) {
+    private static getTopWindowInTile(tile: Tile, excludeWindow: TiledWindow | undefined = undefined) {
         // Note: In addition to .minimized there is .showing_on_its_workspace()
         //  I don't currently see a reason for the additional checks in this use-case,
         //  but if bugs pop up here, it's worth re-reading
-        const window = this._getSortedWindows().find(
+        const window = this.getSortedWindows().find(
             w => w !== excludeWindow &&
                 !w.minimized && 
                 w.tile === tile);
         return window ? window : null;
     }
 
-    static _getSortedWindows() {
+    private static getSortedWindows() {
         const windows = global.workspace_manager.get_active_workspace().list_windows();
         const sorted = global.display.sort_windows_by_stacking(windows).reverse();
         return sorted as TiledWindow[];
