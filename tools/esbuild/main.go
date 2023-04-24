@@ -37,7 +37,7 @@ func run(watchMode bool) error {
 			"src/stylesheet.css",
 			"src/config.default.json",
 			"src/metadata.json",
-			"schemas/org.gnome.shell.extensions.sst.gschema.xml",
+			"src/schemas/org.gnome.shell.extensions.sst.gschema.xml",
 		},
 		Loader: map[string]api.Loader{
 			".json":        api.LoaderCopy,

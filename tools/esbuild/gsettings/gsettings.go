@@ -36,7 +36,7 @@ var Plugin = api.Plugin{
 			cmd := exec.Command(
 				"glib-compile-schemas",
 				"--strict",
-				"schemas/",
+				"src/schemas/",
 				"--targetdir="+schemasPath)
 			data, err := cmd.CombinedOutput()
 			if err != nil {
@@ -76,5 +76,5 @@ func findGSettingsJsFile(schemasPath string, outputFiles []api.OutputFile) (*api
 			return &outputFiles[i], nil
 		}
 	}
-	return nil, errors.New("cannot file GSchema JS file in esbuild output files")
+	return nil, errors.New("cannot find GSchema JS file in esbuild output files")
 }

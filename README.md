@@ -5,7 +5,7 @@ A GNOME Shell extension that turns it into a tiling window manager.
 This is unfinished and unpolished software, missing many features and probably full of bugs. Unless you're a developer & willing to get your hands dirty, I'd turn back now...
 
 ## Installation
-There is no release you can install, and it's a long way from being releasable sofwtare. You can install from source though, instructions are in the [contributing guide](CONTRIBUTING.md).
+There is no release you can install, and it's a long way from being releasable software. You can install from source though, instructions are in the [contributing guide](CONTRIBUTING.md).
 
 After installation, there's no instructions but reading [the cheat sheet](docs/cheatsheet.md) should get you started. See [configuration docs](docs/config.md) to make keybinds etc... your own.
 
