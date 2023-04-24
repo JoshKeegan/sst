@@ -50,7 +50,7 @@ export default class WindowMover {
             // TODO: There will almost certainly be a better way of getting the extensions directory.
             // The same code is in extension.js so can be deduped if nothing else
             const[ok, stdout, stderr, waitStatus] = GLib.spawn_command_line_sync(
-                `${GLib.get_user_data_dir()}/gnome-shell/extensions/sst@joshkeegan.co.uk/tools/bin/xUpdateSizeHints -id ${xid}`);
+                `${GLib.get_user_data_dir()}/gnome-shell/extensions/sst@joshkeegan.co.uk/xUpdateSizeHints -id ${xid}`);
             if (ok && waitStatus === 0 && stderr.length === 0) {
                 log(`Aspect ratio window size hint disabled for x window id ${xid}`);
                 log(stdout);

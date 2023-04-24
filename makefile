@@ -17,7 +17,7 @@ ci: lint
 .PHONY: build-tools
 build-tools:
 	(cd tools/esbuild && go build -o ../bin/)
-	(cd tools/xUpdateSizeHints && go build -o ../bin/)
+	(cd tools/xUpdateSizeHints && go build -o ../../build/)
 
 build:
 	yarn
