@@ -22,8 +22,20 @@ const ANIMATION_TIME = 250;
 class Type extends St.Widget {
     private showing: boolean = false;
 
+    /**
+     * GJS < 1.72 (GNOME < 42) required overriding _init rather than the ctor
+     * for classes inheriting from GObject.
+     * https://gjs.guide/guides/gobject/subclassing.html#subclassing-gobject
+     * For compatibility, we must do the same.
+     * 
+     * For types to be correct in the constructor call, we also define a constructor
+     * that does nothing, but takes the same parameters as _init
+     */
     constructor(tile: Tile) {
-        super({
+        super();
+    }
+    _init(tile: Tile) {
+        super._init({
             x: tile.x,
             y: tile.y,
             width: tile.width,
