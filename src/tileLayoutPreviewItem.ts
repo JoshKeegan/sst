@@ -10,7 +10,7 @@ const ANIMATION_TIME = 250;
 
 // TODO: When inhertiting from a GI type, we need to use GObject.registerClass
 // Below is a workaround so that we export both the type and the registered instance
-// Ideally this wouldn't be required and the GJS eslint plugin needs to change the output 
+// Ideally this wouldn't be required and the GJS esbuild plugin needs to change the output 
 // from the ES6 class to:
 // var TileLayoutPreviewItem = GObject.registerClass(
 // class TileLayoutPreviewItem extends St.Widget {
