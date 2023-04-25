@@ -5,6 +5,7 @@
  - make
  - golang: v1.20
  - node: current LTS
+ - yarn
 
 ## Build & Install from source
 To install, clone the git repo and run:
