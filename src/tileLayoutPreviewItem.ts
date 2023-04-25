@@ -28,12 +28,10 @@ class Type extends St.Widget {
      * https://gjs.guide/guides/gobject/subclassing.html#subclassing-gobject
      * For compatibility, we must do the same.
      * 
-     * For types to be correct in the constructor call, we also define a constructor
-     * that does nothing, but takes the same parameters as _init
+     * Ideally this would be handled by the GJS esbuild plugin, with it converting
+     * constructor( => _init( & super( => super._init(
+     * This would allow for types to still be checked in the ctor call.
      */
-    constructor(tile: Tile) {
-        super();
-    }
     _init(tile: Tile) {
         super._init({
             x: tile.x,
