@@ -32,6 +32,7 @@ When moving a window up, if there is no tile above to move the window to then it
 | `Super`+`T` | Launch terminal |
 | `Super`+`Return` | Launch new window of the current app |
 | `Super`+`E` | Launch file browser |
+| `Super`+`W`/`B` | Launch web browser |
 | `Super`+`C` | Launch calculator |
 | `Ctrl`+`Shift`+`Esc` | Launch resource monitor ([configurable](config.md))
 

@@ -73,5 +73,9 @@
     <key name="launch-files" type="as">
       <default><![CDATA[['<Super>E']]]></default>
     </key>
+
+    <key name="launch-web-browser" type="as">
+      <default><![CDATA[['<Super>W','<Super>B']]]></default>
+    </key>
   </schema>
 </schemalist>

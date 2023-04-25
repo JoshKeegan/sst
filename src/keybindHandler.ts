@@ -78,6 +78,7 @@ export default class KeybindHandler {
             () => settings.get_string("resource-monitor-cmd") ?? "gnome-system-monitor",
             () => settings.get_boolean("resource-monitor-needs-terminal"));
         this.addLaunchKeybinding("launch-files", settings, "nautilus", false);
+        this.addLaunchKeybinding("launch-web-browser", settings, "xdg-open http://", false);
     }
     
     private addLaunchKeybinding(settingName: string, settings: Gio.Settings, 
