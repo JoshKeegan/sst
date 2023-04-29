@@ -61,6 +61,15 @@ export default class WindowLifecycle {
         window.tile = null;
         this.autoTile(window);
         window.connect("size-changed", this.onSizeChanged.bind(this, window));
+
+        // Workaroumd for firefox windows not starting with focus when started via the "firefox --new-window" command.
+        // https://support.mozilla.org/en-US/questions/1411745
+        // This affects the launch web browser keybind, so worth having a fix here.
+        if (window.get_wm_class() === "Firefox" && !window.has_focus()) {
+            log(`Focussing new Firefox window "${window.title}"`);
+            window.focus(0);
+            window.raise();
+        }
     }
 
     private onSizeChanged(window: TiledWindow) {
