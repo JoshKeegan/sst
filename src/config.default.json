@@ -13,7 +13,7 @@
         },
         {
             "title": "^(.+\\s)?Settings$",
-            "notClass": "^[gG]nome-control-center$"
+            "notClass": "^gnome-control-center$"
         },
         {
             "title": "^Preferences(\\s.+)?$"

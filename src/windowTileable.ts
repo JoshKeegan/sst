@@ -21,16 +21,16 @@ class FloatingRule {
 
     constructor(c: CfgFloatingRule) {
         if (c.class !== undefined) {
-            this.class = new RegExp(c.class);
+            this.class = new RegExp(c.class, "i");
         }
         if (c.notClass !== undefined) {
-            this.notClass = new RegExp(c.notClass);
+            this.notClass = new RegExp(c.notClass, "i");
         }
         if (c.title !== undefined) {
-            this.title = new RegExp(c.title);
+            this.title = new RegExp(c.title, "i");
         }
         if (c.notTitle !== undefined) {
-            this.notTitle = new RegExp(c.notTitle);
+            this.notTitle = new RegExp(c.notTitle, "i");
         }
     }
     
