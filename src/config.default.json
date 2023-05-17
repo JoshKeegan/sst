@@ -6,7 +6,7 @@
         },
         {
             "class": "^jetbrains-",
-            "title": "^Welcome to .+|Push Commits to .+|Open File or Project|Copy|Print|New .+|Export to .+|Licenses|HTTP Proxy|Tip of the Day|Conflicts|Update Project|Reformat File: .+|Trust and Open Project .+|Run/Debug Configurations$"
+            "title": "^Welcome to .+|Push Commits to .+|Open File or Project|Copy|Print|New .+|Export to .+|Licenses|HTTP Proxy|Tip of the Day|Conflicts|Update Project|Reformat File: .+|Trust and Open Project .+|Run/Debug Configurations|Select Path$"
         },
         {
             "title": "^Calculator$"
