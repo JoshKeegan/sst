@@ -30,7 +30,7 @@
             "title": "^Configure(\\s.+)?$"
         },
         {
-            "title": "^Open\\s?"
+            "title": "^Open\\s"
         },
         {
             "class": "^Steam$",
