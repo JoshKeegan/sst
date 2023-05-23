@@ -27,7 +27,7 @@
             "title": "^(About Mozilla )?Firefox$"
         },
         {
-            "title": "^Configure(\\s.+)?$"
+            "title": "^Configure\\s"
         },
         {
             "title": "^Open\\s"
