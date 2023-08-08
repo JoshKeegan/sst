@@ -78,10 +78,17 @@ export default class WindowLifecycle {
 
         if (window.tile !== null && (window.tile.width !== wRect.width || window.tile.height !== wRect.height)) {
             log(`window "${window.get_title()}" is tiled so should not have been resized. Changing back to ${window.tile.width}x${window.tile.height} (deferred)`);
-            const tile = window.tile;
+
             GLib.timeout_add(GLib.PRIORITY_HIGH, 0, () => {
-                log(`executing deferred resize "${window.get_title()}" to ${window.tile}`);
-                WindowMover.moveWithoutUpdatingOtherTiles(window, tile);
+                const wRect = window.get_frame_rect();
+                // Window could have been resized, or re-tiled in the (tiny) delay between the context switch, so check again
+                if (window.tile !== null && (window.tile.width !== wRect.width || window.tile.height !== wRect.height)) {
+                    log(`executing deferred resize "${window.get_title()}" to ${window.tile}`);
+                    WindowMover.moveWithoutUpdatingOtherTiles(window, window.tile);
+                } 
+                else {
+                    log(`cancelling deferred resize of "${window.get_title()}", it has already been moved into its tile`);
+                }                
                 return false;
             });
         }
