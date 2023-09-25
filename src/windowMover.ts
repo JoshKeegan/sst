@@ -3,6 +3,8 @@ import GLib from "@girs/glib-2.0";
 import Tile from "./tile"
 import TiledWindow from "./tiledWindow";
 
+const textDecoder = new TextDecoder();
+
 export default class WindowMover {
     static move(window: TiledWindow, tile: Tile) {
         // If the tile we're moving to has a parent that already has a window tiled to it,
@@ -48,9 +50,11 @@ export default class WindowMover {
         if (xid && xid.startsWith("0x")) {
             log(`Disabling aspect ratio window size hint for x window id: ${xid}`);
             // TODO: There will almost certainly be a better way of getting the extensions directory.
-            // The same code is in extension.js so can be deduped if nothing else
-            const[ok, stdout, stderr, waitStatus] = GLib.spawn_command_line_sync(
+            // The same code is in config.ts so can be deduped if nothing else
+            const[ok, rawStdout, rawStderr, waitStatus] = GLib.spawn_command_line_sync(
                 `${GLib.get_user_data_dir()}/gnome-shell/extensions/sst@joshkeegan.co.uk/xUpdateSizeHints -id ${xid}`);
+            const stdout = textDecoder.decode(rawStdout);
+            const stderr = textDecoder.decode(rawStderr);
             if (ok && waitStatus === 0 && stderr.length === 0) {
                 log(`Aspect ratio window size hint disabled for x window id ${xid}`);
                 log(stdout);
