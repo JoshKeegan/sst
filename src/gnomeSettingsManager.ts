@@ -19,9 +19,20 @@ export default class GnomeSettingsManager {
             this.resetFns.push(
                 this.settingsSetBool(ExtensionUtils.getSettings("org.gnome.mutter"),
                     "edge-tiling", false));
-            this.resetFns.push(
-                this.settingsSetBool(ExtensionUtils.getSettings("org.gnome.shell.overrides"),
-                    "edge-tiling", false));
+            
+            // No longer exists in gnome-shell 44
+            let gnomeShellOverrides: Gio.Settings | undefined;
+            try {
+                gnomeShellOverrides = ExtensionUtils.getSettings("org.gnome.shell.overrides");
+            }
+            catch (e: any) {
+                log("Skipping gnome.shell.overrides settings");
+            }
+            if (gnomeShellOverrides !== undefined) {
+                this.resetFns.push(
+                    this.settingsSetBool(gnomeShellOverrides,
+                        "edge-tiling", false));
+            }
 
             // disable native tiling keybindings as edge-tiling being off doesn't disable
             //  it via keybinds for some reason.
