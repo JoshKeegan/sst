@@ -4,6 +4,9 @@ declare const imports: Imports;
 interface Imports {
     /**
      * @deprecated https://github.com/GNOME/gjs/blob/master/doc/ByteArray.md
+     * 
+     * Still in use because TextEncoder & TextDecoder are not present prior to GJS 1.69.2
+     * GNOME shell 3.36.9 (lowest version currently supported) uses GJS 1.64.5 
      */
     byteArray: any,
     ui: {

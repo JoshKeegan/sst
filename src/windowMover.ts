@@ -3,7 +3,7 @@ import GLib from "@girs/glib-2.0";
 import Tile from "./tile"
 import TiledWindow from "./tiledWindow";
 
-const textDecoder = new TextDecoder();
+const { byteArray } = imports;
 
 export default class WindowMover {
     static move(window: TiledWindow, tile: Tile) {
@@ -53,8 +53,8 @@ export default class WindowMover {
             // The same code is in config.ts so can be deduped if nothing else
             const[ok, rawStdout, rawStderr, waitStatus] = GLib.spawn_command_line_sync(
                 `${GLib.get_user_data_dir()}/gnome-shell/extensions/sst@joshkeegan.co.uk/xUpdateSizeHints -id ${xid}`);
-            const stdout = textDecoder.decode(rawStdout);
-            const stderr = textDecoder.decode(rawStderr);
+            const stdout = byteArray.toString(rawStdout);
+            const stderr = byteArray.toString(rawStderr);
             if (ok && waitStatus === 0 && stderr.length === 0) {
                 log(`Aspect ratio window size hint disabled for x window id ${xid}`);
                 log(stdout);
