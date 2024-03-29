@@ -33,6 +33,7 @@ build:
 
 .PHONY: install
 install:
+	mkdir -p ~/.local/share/gnome-shell/extensions
 	ln -s "$(PWD)/build" ~/.local/share/gnome-shell/extensions/$(EXTENSION)
 
 .PHONY: uninstall
