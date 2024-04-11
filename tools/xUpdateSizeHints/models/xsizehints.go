@@ -25,9 +25,10 @@ const (
 )
 
 type XSizeHints struct {
-	// Note: flags is long https://github.com/freedesktop/xorg-libX11/blob/5faa8dc0b364f55f19034c370436074646d9ad54/include/X11/Xutil.h#L77
-	// I'm only getting 32bits in practise though. Haven't dug into why, but this would be an issue on other systems if
-	// they use 64bits to represent flags.
+	// Note: The following types assume lengths that will not be portable between all platform architectures & compilers.
+	// e.g. flags is long https://gitlab.freedesktop.org/xorg/lib/libx11/-/blob/master/include/X11/Xutil.h?ref_type=heads#L82
+	// and on my system that is 32bits, and so are the other int flags, hence int32 here for both types.
+	// That's due to the C spec. See https://stackoverflow.com/a/7456920
 	flags                int32 /* marks which fields in this structure are defined */
 	x, y                 int32 /* Obsolete */
 	width, height        int32 /* Obsolete */
