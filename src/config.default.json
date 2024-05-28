@@ -2,7 +2,7 @@
     "floatingRules": [
         {
             "class": "^zoom$",
-            "notTitle": "^(Room \\d\\s+)?Zoom Meeting$"
+            "notTitle": "^(Room \\d\\s+)?Zoom Meeting|Zoom Workplace$"
         },
         {
             "class": "^jetbrains-",
