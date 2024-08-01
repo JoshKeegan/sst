@@ -20,7 +20,7 @@ var Plugin = api.Plugin{
 					return api.OnLoadResult{}, fmt.Errorf("reading file: %w", err)
 				}
 				contents := string(data)
-				contents = girRegex.ReplaceAllString(contents, "const { $1 } = imports.gi")
+				contents = girRegex.ReplaceAllString(contents, "import $1 from 'gi://$1'")
 
 				return api.OnLoadResult{
 					Contents: &contents,

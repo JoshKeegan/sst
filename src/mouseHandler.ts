@@ -1,5 +1,7 @@
 import Meta from "@girs/meta-12";
 
+import { PACKAGE_VERSION } from "resource:///org/gnome/shell/misc/config.js";
+import * as WindowManager from "resource:///org/gnome/shell/ui/windowManager.js";
 import Geometry from "./geometry";
 import KeybindHandler from "./keybindHandler";
 import Tile from "./tile";
@@ -9,11 +11,8 @@ import Tiles from "./tiles";
 import WindowLifecycle from "./windowLifecycle";
 import WindowMover from "./windowMover";
 
-
-const {windowManager} = imports.ui;
-
 const COMBINED_TILES_TRIGGER_DISTANCE_PX = 30;
-const GNOME_VERSION = parseFloat(imports.misc.config.PACKAGE_VERSION);
+const GNOME_VERSION = parseFloat(PACKAGE_VERSION);
 
 // Use values rather than constants e.g. CLUTTER_MOD5_MASK as they aren't all defined
 // in older versions.
@@ -39,7 +38,7 @@ export default class MouseHandler {
     private posChangedId = 0;
     private lastActive = false;
     private tileLayoutPreview: TileLayoutPreview | null = null;
-    private tilePreview = new windowManager.TilePreview();
+    private tilePreview = new WindowManager.TilePreview();
     private tile: Tile | null = null;
 
     constructor(windowLifecycle: WindowLifecycle, tiles: Tiles, keybindHandler: KeybindHandler) {

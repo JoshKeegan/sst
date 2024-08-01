@@ -1,8 +1,8 @@
-const {main} = imports.ui;
-
 import Clutter from "@girs/clutter-12";
 import GObject from "@girs/gobject-2.0";
 import St from "@girs/st-12";
+
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
 import Tile from "./tile"
 
@@ -42,12 +42,12 @@ class Type extends St.Widget {
             style_class: "tile-layout-preview",
         });
 
-        main.layoutManager.uiGroup.add_child(this);
+        Main.layoutManager.uiGroup.add_child(this);
     }
 
     destroy() {
         this.close();
-        main.layoutManager.uiGroup.remove_child(this);
+        Main.layoutManager.uiGroup.remove_child(this);
         super.destroy();
     }
 

@@ -1,7 +1,7 @@
 import Gio from "@girs/gio-2.0";
 import GLib from "@girs/glib-2.0";
 
-const { byteArray } = imports;
+const decoder = new TextDecoder();
 
 export interface Config {
     floatingRules: FloatingRule[]// @ts-ignore - missing ctor for Meta.Rectange struct
@@ -50,7 +50,7 @@ export class Config {
         if (!ok) {
             throw new Error("loading config - could not read file");
         }
-        const string = byteArray.toString(bytes);
+        const string = decoder.decode(bytes);
         log(string);
         return JSON.parse(string);
     }

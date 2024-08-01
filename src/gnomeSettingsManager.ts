@@ -1,7 +1,5 @@
 import Gio from "@girs/gio-2.0"
 
-const ExtensionUtils = imports.misc.extensionUtils;
-
 /**
  * GnomeSettingsManager is in charge of changing Gnome default keybinds that we want to replace with our own.
  * This is generally because the functionality is replaced (e.g. native edge tiling).
@@ -11,19 +9,21 @@ const ExtensionUtils = imports.misc.extensionUtils;
 export default class GnomeSettingsManager {
     private resetFns: (() => void)[] = [];
 
-    constructor(sstSettings: Gio.Settings) {
+    constructor(getSettings: (schema?: string) => Gio.Settings) {
+        const sstSettings = getSettings();
+
         // Fail gracefully: failure to update one setting shouldn't leave all of the others
         //  in a modified state
         try {
             // disable native tiling
             this.resetFns.push(
-                this.settingsSetBool(ExtensionUtils.getSettings("org.gnome.mutter"),
+                this.settingsSetBool(getSettings("org.gnome.mutter"),
                     "edge-tiling", false));
             
             // No longer exists in gnome-shell 44
             let gnomeShellOverrides: Gio.Settings | undefined;
             try {
-                gnomeShellOverrides = ExtensionUtils.getSettings("org.gnome.shell.overrides");
+                gnomeShellOverrides = getSettings("org.gnome.shell.overrides");
             }
             catch (e: any) {
                 log("Skipping gnome.shell.overrides settings");
@@ -36,7 +36,7 @@ export default class GnomeSettingsManager {
 
             // disable native tiling keybindings as edge-tiling being off doesn't disable
             //  it via keybinds for some reason.
-            const gnomeMutterKeybinds = ExtensionUtils.getSettings("org.gnome.mutter.keybindings");
+            const gnomeMutterKeybinds = getSettings("org.gnome.mutter.keybindings");
             this.resetFns.push(
                 this.settingsSetStrv(gnomeMutterKeybinds, "toggle-tiled-left", []));
             this.resetFns.push(
@@ -45,7 +45,7 @@ export default class GnomeSettingsManager {
             // Native fullscreen keybinds can collide with tile layer 0 up & down, make our keybinds take
             //  precedence since you can also make windows fullscreen via ours if there is no tile above the window.
             // Retain keybinds that we don't collide with though (e.g. unmaximize also has <Alt>F5 as a default that we can keep)
-            const gnomeKeybinds = ExtensionUtils.getSettings("org.gnome.desktop.wm.keybindings");
+            const gnomeKeybinds = getSettings("org.gnome.desktop.wm.keybindings");
             this.resetFns.push(
                 this.settingsRemoveFromStrv(
                     gnomeKeybinds, "maximize", sstSettings.get_strv("tile-move-up-layer-0")));
@@ -69,7 +69,7 @@ export default class GnomeSettingsManager {
             // Native shift overview up/down that has been added in newer Gnome versions collides. We want <Super><Alt>Up/Down
             // Not sure why you'd want a keyboard shortcut for this anyway as you can type at the top level... Shifting the overview
             // up seems like mouse behaviour to me because it gives you the grid of installed applications to select from...
-            const gnomeShellKeybinds = ExtensionUtils.getSettings("org.gnome.shell.keybindings");
+            const gnomeShellKeybinds = getSettings("org.gnome.shell.keybindings");
             this.resetFns.push(
                 this.settingsRemoveFromStrv(
                     gnomeShellKeybinds, "shift-overview-up", sstSettings.get_strv("tile-move-up-layer-1")));

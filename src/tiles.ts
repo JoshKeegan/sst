@@ -1,10 +1,10 @@
 import Meta from "@girs/meta-12";
 
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
+
 import TileRelationshipCalculator from "./tileRelationshipCalculator";
 import Tile from "./tile";
 import TileLayoutPreview from "./tileLayoutPreview";
-
-const Main = imports.ui.main;
 
 export default class Tiles {
     private previews: TileLayoutPreview[] = [];
@@ -79,7 +79,7 @@ export default class Tiles {
         log("Generated Tiles:");
         for(let i = 0; i < this.allTiles.length; i++) {
             log(`Layer ${i}`);
-            this.allTiles[i].forEach(t => log(t));
+            this.allTiles[i].forEach(t => log(t.toString()));
         }
 
         // Layout has been changed

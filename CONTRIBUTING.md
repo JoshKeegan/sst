@@ -49,7 +49,14 @@ You can also read source code for some other plugins, e.g:
  - [Tiling-Assistant](https://github.com/Leleat/Tiling-Assistant) - another gnome-shell extension for tiling, with different use-cases. This, and other compatibly licensed extensions are a good source of examples.
 
  ## TypeScript
- SST is now written in TypeScript, using types generated from GI (GObject Introspection). These cover many GNOME APIs, but not gnome-shell specific APIs. These are generally wrappers around lower-level GNOME APIs, but where required, types can be manually added in `src/imports.d.ts`.
+ SST is now written in TypeScript. 
+ 
+ GNOME API types are generated from GI (GObject Introspection). 
+ 
+Gnome-shell specific APIs are written in JS and can be found [in the gnome-shell repo](https://gitlab.gnome.org/GNOME/gnome-shell/-/tree/main/js). These are generally wrappers around lower-level GNOME APIs, but where required, types can be manually added in `src/gnomeShell/**/*.d.ts` to use them from TS.
+
+A [custom esbuild plugin](tools/esbuild/gjs/gjs.go) is used to convert the imports from the generated "@gir/*" packages to ones that gjs understands. 
+> Note: this could likely be improved now that gnome-shell 45 switched to ESM. We'd need to get the "@gir/*" packages to be able to be imported directly from "gi://*".
 
 # Unit Tests
 Gnome extensions aren't natively unit testable. It could still be done but I have decided that right now for this project it is not worth the effort since the whole extension needs manually testing after changes anyway. Should I ever *really* need to unit test something it can be achieved by making the SUT global (not a great pattern to follow for building a test suite), or with bundling, e.g. as has been done in 
