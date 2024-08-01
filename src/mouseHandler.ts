@@ -38,7 +38,7 @@ export default class MouseHandler {
     private posChangedId = 0;
     private lastActive = false;
     private tileLayoutPreview: TileLayoutPreview | null = null;
-    private tilePreview = new WindowManager.TilePreview();
+    private tilePreview: WindowManager.TilePreview | null = new WindowManager.TilePreview();
     private tile: Tile | null = null;
 
     constructor(windowLifecycle: WindowLifecycle, tiles: Tiles, keybindHandler: KeybindHandler) {
@@ -63,7 +63,7 @@ export default class MouseHandler {
 
     destroy() {
         this.displaySignals.forEach(sId => global.display.disconnect(sId));
-        this.tilePreview.destroy();
+        this.tilePreview?.destroy();
         this.tilePreview = null;
     }
 
@@ -91,7 +91,7 @@ export default class MouseHandler {
 
         this.closeTileLayoutPreview();
 
-        this.tilePreview.close();
+        this.tilePreview?.close();
         this.tile = null;
     }
 
@@ -136,13 +136,13 @@ export default class MouseHandler {
 
         // Draw the preview of the tile the window will move to
         if (!this.tile || !tile.rect.equal(this.tile.rect)) {
-            this.tilePreview.open(window, tile.rect, monitorIdx);
+            this.tilePreview?.open(window, tile.rect, monitorIdx);
             this.tile = tile;
         }
     }
 
     private undraw() {
-        this.tilePreview.close();
+        this.tilePreview?.close();
         this.tile = null;
     }
 
