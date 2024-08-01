@@ -3,14 +3,13 @@ import Gio from "@girs/gio-2.0"
 import Meta from "@girs/meta-12"
 import Shell from "@girs/shell-12"
 
+import * as Main from "resource:///org/gnome/shell/ui/main.js";
+
 import Tile from "./tile";
 import TiledWindow from "./tiledWindow";
 import Tiles from "./tiles";
 import TileRelationshipCalculator from "./tileRelationshipCalculator";
 import WindowMover from "./windowMover";
-
-const ExtensionUtils = imports.misc.extensionUtils;
-const {main} = imports.ui;
 
 interface TileMoveKey {
     nextTileSelector: (t: Tile) => Tile | null,
@@ -49,14 +48,16 @@ export default class KeybindHandler {
     private launchKeybinds: string[];
     private tiles: Tiles;
 
-    constructor(settings: Gio.Settings, tiles: Tiles) {
+    constructor(getSettings: (schema?: string) => Gio.Settings, tiles: Tiles) {
         this.tiles = tiles;
 
-        const defaultTerminalSettings = ExtensionUtils.getSettings("org.gnome.desktop.default-applications.terminal");
+        const settings = getSettings();
+
+        const defaultTerminalSettings = getSettings("org.gnome.desktop.default-applications.terminal");
         const execTerminal = defaultTerminalSettings.get_string("exec") ?? "gnome-terminal";
 
         for (const [settingName, movement] of tileMoveKeys) {
-            main.wm.addKeybinding(settingName, 
+            Main.wm.addKeybinding(settingName, 
                 settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
@@ -65,7 +66,7 @@ export default class KeybindHandler {
                     settingName, 
                     movement));
         }
-        main.wm.addKeybinding("new-window",
+        Main.wm.addKeybinding("new-window",
             settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL,
@@ -86,7 +87,7 @@ export default class KeybindHandler {
         needsTerminal: boolean | (() => boolean)
         ) {
         this.launchKeybinds.push(settingName);
-        main.wm.addKeybinding(settingName,
+        Main.wm.addKeybinding(settingName,
             settings,
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
@@ -103,10 +104,10 @@ export default class KeybindHandler {
 
     destroy() {
         for (const settingName in tileMoveKeys) {
-            main.wm.removeKeybinding(settingName);
+            Main.wm.removeKeybinding(settingName);
         }
-        this.launchKeybinds.forEach(settingName => main.wm.removeKeybinding(settingName));
-        main.wm.removeKeybinding("new-window");
+        this.launchKeybinds.forEach(settingName => Main.wm.removeKeybinding(settingName));
+        Main.wm.removeKeybinding("new-window");
     }
 
     isModKeyPressed(modMask: Clutter.ModifierType) {

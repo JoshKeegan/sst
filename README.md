@@ -11,6 +11,9 @@ After installation, there's no instructions but reading [the cheat sheet](docs/c
 
 You may also want to customise some GNOME defaults via `gnome-tweaks` or `gsettings`, e.g. disabling the window maximise button and altering window titlebar behaviour. This is completely optional though, sst will change anything required when enabled (and restore previous settings when disabled).
 
+### Older than GNOME v45
+Older versions of GNOME are supported, currently back to v3.36. However, GNOME shell 45 made a major breaking change so [code for versions before that is separate, on the `legacy` branch](https://github.com/JoshKeegan/sst/tree/legacy). 
+
 ## Usage with other extensions
 A huge win of building sst as a GNOME Shell extension is that you still get all of the functionality of GNOME, including extensions. That means you can combine sst with other extensions to customise GNOME to work exactly as you want.
 

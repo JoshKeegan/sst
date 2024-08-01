@@ -47,17 +47,19 @@ func run(watchMode bool) error {
 		Write:  true,
 		Bundle: true,
 		Engines: []api.Engine{
-			// For SpiderMoney updates check GJS release notes: https://gitlab.gnome.org/GNOME/gjs/-/blob/master/NEWS
+			// For SpiderMonkey updates check GJS release notes: https://gitlab.gnome.org/GNOME/gjs/-/blob/master/NEWS
 			//{Name: api.EngineFirefox, Version: "60"},  // Since GJS 1.53.90
-			{Name: api.EngineFirefox, Version: "68"}, // Since GJS 1.63.90
+			//{Name: api.EngineFirefox, Version: "68"}, // Since GJS 1.63.90
 			//{Name: api.EngineFirefox, Version: "78"},  // Since GJS 1.65.90
 			//{Name: api.EngineFirefox, Version: "91"},  // Since GJS 1.71.1
 			//{Name: api.EngineFirefox, Version: "102"}, // Since GJS 1.73.2
+			{Name: api.EngineFirefox, Version: "115"}, // Since GJS 1.77.2
 		},
 		Format:      api.FormatESModule,
 		TreeShaking: api.TreeShakingFalse,
 		External: []string{
-			"@girs/*",
+			"gi://*",
+			"resource:///org/gnome/shell/*",
 		},
 		Plugins: []api.Plugin{
 			gjs.Plugin,

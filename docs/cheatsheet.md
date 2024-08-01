@@ -48,3 +48,8 @@ When moving a window up, if there is no tile above to move the window to then it
 | `Ctrl`+`Alt`+`Right`/`Down` | Switch to next workspace (direction depends on config) |
 | `Ctrl`+`Alt`+`Left`/`Up` | Switch to previous workspace (direction depends on config) |
 | `Ctrl`+`Alt`+`Del` | Shutdown (or logoff) |
+
+### Useful Keybinds for Common 3rd Party Apps
+| App | Keys | Action |
+| --- | ---- | ------ |
+| Firefox | `Ctrl`+`Shift`+`]` | Watch video picture-in-picture. Allows for a video to be tiled as a window by SST |
