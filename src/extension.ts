@@ -1,6 +1,6 @@
 import Gio from "@girs/gio-2.0";
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, Metadata} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {Config} from "./config";
 import GnomeSettingsManager from "./gnomeSettingsManager";
@@ -18,7 +18,7 @@ export default class SstExtension extends Extension {
     private keybindHandler?: KeybindHandler;
     private mouseHandler?: MouseHandler;
 
-    constructor(metadata: any) {
+    constructor(metadata: Metadata) {
         log("Init sst");
         super(metadata);
     }

@@ -1,9 +1,17 @@
 declare module "resource:///org/gnome/shell/extensions/extension.js" {
-    export class Extension {
-        // TODO: declare type for metadata
-        constructor(metadata: any);
+    /**
+     * Represents the metadata param to the Extension/ExtensionBase ctor.
+     * It's an object representing the contents of metadata.json, but this class represents how it should be used.
+     * BaseExtension already contains many accessors for this, use those if available.
+     */
+    export class Metadata {
+        [key: string]: string;
+    }
 
-        public readonly metadata: any;
+    export class Extension {
+        constructor(metadata: Metadata);
+
+        public readonly metadata: Metadata;
 
         // Not entirely true
         // Extension extends ExtensionBase, and getSettings is on that.
