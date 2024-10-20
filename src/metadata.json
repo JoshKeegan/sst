@@ -4,6 +4,7 @@
     "uuid": "sst@joshkeegan.co.uk",
     "settings-schema": "org.gnome.shell.extensions.sst",
     "shell-version": [
-        "46"
+        "46",
+        "47"
     ]
 }
