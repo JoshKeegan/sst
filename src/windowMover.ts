@@ -44,10 +44,8 @@ export default class WindowMover {
         // fires an event that is listened for and updates the hints that gnome will apply to the window.
         // Note: these are applied on every window movement, as some applications (e.g. gnome-terminal) will 
         //  re-set them assuming that they are solely in control of the size hints, ignoring our changes.
-        
-        // Window description should be the X window ID, but check it starts with 0x before using it...
-        const xid = window.get_description();
-        if (xid && xid.startsWith("0x")) {
+        const xid = WindowMover.getXWindowID(window);
+        if (xid !== null) {
             log(`Disabling aspect ratio window size hint for x window id: ${xid}`);
             // TODO: There will almost certainly be a better way of getting the extensions directory.
             // The same code is in config.ts so can be deduped if nothing else
@@ -72,6 +70,22 @@ export default class WindowMover {
         // tile will. Needs investigating...
         log(`Moving window "${window.get_title()}" to tile x: ${tile.x} y: ${tile.y} width: ${tile.width} height: ${tile.height}`);
         window.move_resize_frame(false, tile.x, tile.y, tile.width, tile.height);
+    }
+
+    private static getXWindowID(window: TiledWindow) : string | null {
+        // Window description used to be the X window ID. At some point <=GNOME 47 the window title got added to it.
+        // Check it starts with 0x before using it...
+        const desc = window.get_description();
+        if (desc && desc.startsWith("0x")) {
+            // If it doesn't contain a space, it's just the ID
+            const spaceIdx = desc.indexOf(' ');
+            if (spaceIdx === -1) {
+                return desc;
+            }
+            // Otherwise, the first part of the string is the ID
+            return desc.substring(0, spaceIdx);
+        }
+        return null;
     }
 
     static leave(window: TiledWindow, tile: Tile | null) {
