@@ -5,6 +5,7 @@
     "settings-schema": "org.gnome.shell.extensions.sst",
     "shell-version": [
         "46",
-        "47"
+        "47",
+        "48"
     ]
 }
