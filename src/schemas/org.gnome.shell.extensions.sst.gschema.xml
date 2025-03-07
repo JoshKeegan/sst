@@ -3,40 +3,40 @@
   <schema id="org.gnome.shell.extensions.sst" path="/org/gnome/shell/extensions/sst/">
     <!-- Keyboard tiling keybinds -->
     <key name="tile-move-up-layer-0" type="as">
-      <default><![CDATA[['<Super>Up']]]></default>
+      <default><![CDATA[['<Super>Up', '<Super>W']]]></default>
     </key>
     <key name="tile-move-down-layer-0" type="as">
-      <default><![CDATA[['<Super>Down']]]></default>
+      <default><![CDATA[['<Super>Down', '<Super>S']]]></default>
     </key>
     <key name="tile-move-left-layer-0" type="as">
-      <default><![CDATA[['<Super>Left']]]></default>
+      <default><![CDATA[['<Super>Left', '<Super>A']]]></default>
     </key>
     <key name="tile-move-right-layer-0" type="as">
-      <default><![CDATA[['<Super>Right']]]></default>
+      <default><![CDATA[['<Super>Right', '<Super>D']]]></default>
     </key>
     <key name="tile-move-up-layer-1" type="as">
-      <default><![CDATA[['<Super><Ctrl>Up', '<Super><Alt>Up']]]></default>
+      <default><![CDATA[['<Super><Ctrl>Up', '<Super><Alt>Up', '<Super><Ctrl>W', '<Super><Alt>W']]]></default>
     </key>
     <key name="tile-move-down-layer-1" type="as">
-      <default><![CDATA[['<Super><Ctrl>Down', '<Super><Alt>Down']]]></default>
+      <default><![CDATA[['<Super><Ctrl>Down', '<Super><Alt>Down', '<Super><Ctrl>S', '<Super><Alt>S']]]></default>
     </key>
     <key name="tile-move-left-layer-1" type="as">
-      <default><![CDATA[['<Super><Ctrl>Left', '<Super><Alt>Left']]]></default>
+      <default><![CDATA[['<Super><Ctrl>Left', '<Super><Alt>Left', '<Super><Ctrl>A', '<Super><Alt>A']]]></default>
     </key>
     <key name="tile-move-right-layer-1" type="as">
-      <default><![CDATA[['<Super><Ctrl>Right', '<Super><Alt>Right']]]></default>
+      <default><![CDATA[['<Super><Ctrl>Right', '<Super><Alt>Right', '<Super><Ctrl>D', '<Super><Alt>D']]]></default>
     </key>
     <key name="tile-move-up-layer-2" type="as">
-      <default><![CDATA[['<Super><Ctrl><Alt>Up']]]></default>
+      <default><![CDATA[['<Super><Ctrl><Alt>Up', '<Super><Ctrl><Alt>W']]]></default>
     </key>
     <key name="tile-move-down-layer-2" type="as">
-      <default><![CDATA[['<Super><Ctrl><Alt>Down']]]></default>
+      <default><![CDATA[['<Super><Ctrl><Alt>Down', '<Super><Ctrl><Alt>S']]]></default>
     </key>
     <key name="tile-move-left-layer-2" type="as">
-      <default><![CDATA[['<Super><Ctrl><Alt>Left']]]></default>
+      <default><![CDATA[['<Super><Ctrl><Alt>Left', '<Super><Ctrl><Alt>A']]]></default>
     </key>
     <key name="tile-move-right-layer-2" type="as">
-      <default><![CDATA[['<Super><Ctrl><Alt>Right']]]></default>
+      <default><![CDATA[['<Super><Ctrl><Alt>Right', '<Super><Ctrl><Alt>D']]]></default>
     </key>
     
     <!-- Tile by default: whether Ctrl needs to be pressed to enable tiling by mouse movement -->
@@ -75,7 +75,7 @@
     </key>
 
     <key name="launch-web-browser" type="as">
-      <default><![CDATA[['<Super>W','<Super>B']]]></default>
+      <default><![CDATA[['<Super>B']]]></default>
     </key>
   </schema>
 </schemalist>

@@ -76,6 +76,19 @@ export default class GnomeSettingsManager {
             this.resetFns.push(
                 this.settingsRemoveFromStrv(
                     gnomeShellKeybinds, "shift-overview-down", sstSettings.get_strv("tile-move-down-layer-1")));
+            
+            // Toggle quick settings default (<Super>S) conflicts with tiling layer 0 with WASD.
+            this.resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeShellKeybinds, "toggle-quick-settings", sstSettings.get_strv("tile-move-down-layer-0")));
+            
+            // Toggle application view defualt (<Super>A) conflicts with tiling layer 0 WASD. Change to <Super><Shift>A.
+            this.resetFns.push(
+                this.settingsRemoveFromStrv(
+                    gnomeShellKeybinds, "toggle-application-view", sstSettings.get_strv("tile-move-left-layer-0")));
+            this.resetFns.push(
+                this.settingsAddToStrv(
+                    gnomeShellKeybinds, "toggle-application-view", ["<Super><Shift>A"]));       
         }
         catch (e) {
             logError(e, "Failed to set a GNOME setting, resetting any that have already been set");
@@ -110,8 +123,12 @@ export default class GnomeSettingsManager {
             log(`${settings.settings_schema.get_id()} does not contain key ${key}, skipping updating it`);
             return () => {  };
         }
+
+        // Use case-insensitive comparison, since keybinds can be either
+        const lowerValues = new Set(values.map(v => v.toLowerCase()));
+
         const orig = settings.get_strv(key);
-        const removed = orig.filter(s => !values.includes(s));
+        const removed = orig.filter(s => !lowerValues.has(s.toLowerCase()));
         log(`Removing '${values}' from ${key} setting. Original '${orig}', now '${removed}'`);
         settings.set_strv(key, removed);
 

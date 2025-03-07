@@ -14,7 +14,7 @@ When dragging a window with a mouse it will auto-tile to the tile your mouse is 
  - Hold `Super`+`Alt` whilst dragging a window to access 2nd layer sub-tiles.
 
 ## Keyboard Shortcuts
-Direction keys: `←`/`↓`/`↑`/`→`
+Direction keys: Arrows (`↑`/`←`/`↓`/`→`) or `W`/`A`/`S`/`D`
 
 ### Window movement
 | Keys | Action |
@@ -32,15 +32,17 @@ When moving a window up, if there is no tile above to move the window to then it
 | `Super`+`T` | Launch terminal |
 | `Super`+`Return` | Launch new window of the current app |
 | `Super`+`E` | Launch file browser |
-| `Super`+`W`/`B` | Launch web browser |
+| `Super`+`B` | Launch web browser |
 | `Super`+`C` | Launch calculator |
 | `Ctrl`+`Shift`+`Esc` | Launch resource monitor ([configurable](config.md))
 
-### Useful & Unchanged GNOME Keybinds
+### Useful GNOME Keybinds
+These are generally unchanged from GNOME defaults, but some are changed to free up their default keybind for SST to use. 
+
 | Keys | Action |
 | ---- | ------ |
 | `Super` | Launcher (does much more, but without a launcher built-in to sst you'll  use this a lot) |
-| `Super`+`A` | Applications menu |
+| `Super`+`Shift`+`A` (changed from default) | Applications menu |
 | `Super`+`V` | Toggle notifications menu |
 | `Alt`+`F2` | Run |
 | `Super`+`Shift`+`PgDn` | Move window to next workspace |
